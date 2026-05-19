@@ -12,5 +12,7 @@ export default defineConfig({
   },
   build: {
     cssMinify: false,
+    outDir: 'docs',
+    emptyOutDir: true,
   },
 })
