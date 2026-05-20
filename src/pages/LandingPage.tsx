@@ -25,6 +25,13 @@ const PREVIEW_SCALE = 0.7;
 const PREVIEW_WIDTH = IFRAME_WIDTH * PREVIEW_SCALE;
 const PREVIEW_HEIGHT = IFRAME_HEIGHT * PREVIEW_SCALE;
 
+// Vite's BASE_URL ("/" in dev, "/payroll/" when deployed to GitHub Pages).
+// React Router's <Link> handles the prefix automatically via `basename`, but
+// raw iframe src attributes need it applied manually.
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (path: string) =>
+    path.startsWith('/') ? `${BASE}${path}` : path;
+
 function PrototypeCard({ p }: { p: Prototype }) {
     const t = da.landing;
     return (
@@ -92,7 +99,7 @@ function PrototypeCard({ p }: { p: Prototype }) {
                     }}
                 >
                     <iframe
-                        src={p.path}
+                        src={withBase(p.path)}
                         title={p.title}
                         loading="lazy"
                         className="block bg-white"
