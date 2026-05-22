@@ -12,9 +12,9 @@ export type Project = {
 export const projects: Project[] = [
     {
         id: 'onboarding',
-        title: 'Onboarding',
+        title: 'Migrering',
         summary:
-            'Valider antagelser om brugernes behov og adfærd i forbindelse med migrering af medarbejderdata til e-conomic løn. Testen fokuserer på upload-flow, AI-forslag, gennemgang af udkast og medarbejderoverblik.',
+            'Test af upload-flow, AI-forslag og gennemgang af medarbejderudkast ved migrering til e-conomic Løn.',
         assumptions: [],
     },
     {
@@ -48,14 +48,14 @@ export const prototypes: Prototype[] = [
     {
         id: 'onboarding-v1',
         projectId: 'onboarding',
-        title: 'Onboarding · v1',
+        title: 'Migrering · v1',
         summary: 'Drag-and-drop af lønsedler og regneark for automatisk at oprette medarbejderudkast. Rettedialog som fuld side med gul fremhævning af udtrukne felter.',
         description:
             'Ny bruger lander på en tom medarbejderliste, trækker lønsedler eller regneark ind, og får genereret medarbejderudkast med markerede felter. Inkluderer bulk-import med AI-matching mod eksisterende udkast og fuld stamdata-side per medarbejder.',
         status: 'live',
         path: PATHS.onboardingV1.employees,
         tags: ['Medarbejderoprettelse', 'Bulk-import', 'Fuld side-edit'],
-        flow: 'Onboarding',
+        flow: 'Migrering',
         version: 'v1',
         updatedAt: '2026-05-15',
     },

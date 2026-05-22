@@ -32,30 +32,6 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 const withBase = (path: string) =>
     path.startsWith('/') ? `${BASE}${path}` : path;
 
-function EconomicLogo() {
-    // Stylized e-conomic wordmark — keeps the brand mark recognizable without
-    // shipping the raw asset. The leading lowercase "e" with a curl is the
-    // visual anchor; the rest is the wordmark in dark navy.
-    return (
-        <span className="inline-flex items-center gap-1.5 text-lg font-bold text-neutral-900 tracking-tight">
-            <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                className="shrink-0"
-            >
-                <circle cx="12" cy="12" r="11" fill="#1F2A44" />
-                <path
-                    d="M7 13.2c0-2.6 1.9-4.7 4.6-4.7 2.5 0 4.4 1.9 4.4 4.4 0 .3 0 .5-.1.8H9.2c.2 1.4 1.2 2.2 2.7 2.2 1 0 1.9-.4 2.5-1.1l1.5 1.4c-1 1.1-2.4 1.6-4.1 1.6-2.8 0-4.8-2-4.8-4.6zm6.9-.9c-.1-1.2-.9-2-2.3-2-1.3 0-2.2.8-2.4 2h4.7z"
-                    fill="#FFFFFF"
-                />
-            </svg>
-            <span>e-conomic</span>
-        </span>
-    );
-}
-
 // --- Screen-share stepper visuals ---------------------------------------
 //
 // Each visual is a stylized but recognizable mock of the Google Meet UI a
@@ -632,8 +608,7 @@ export function LandingPage() {
     return (
         <div className="min-h-screen bg-neutral-50">
             <header className="bg-white">
-                <div className="mx-auto max-w-6xl px-8 py-4 flex items-center justify-between">
-                    <EconomicLogo />
+                <div className="mx-auto max-w-6xl px-8 py-4 flex items-center justify-end">
                     <span className="text-xs text-neutral-500">
                         Brugertest · prototyper
                     </span>
