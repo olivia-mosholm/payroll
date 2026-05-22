@@ -14,6 +14,17 @@ export type Employee = {
     lastPayment?: string;
     remainingVacationDays?: number;
     plannedChanges?: boolean;
+    /**
+     * When true, the AI extracted additional address/contact fields from
+     * the source document. The edit page highlights these too and pre-fills
+     * them with the values below.
+     */
+    enriched?: boolean;
+    email?: string;
+    phone?: string;
+    address?: string;
+    postCode?: string;
+    city?: string;
 };
 
 export const mockEmployees: Employee[] = [
@@ -27,6 +38,12 @@ export const mockEmployees: Employee[] = [
         hireDate: '01.03.2022',
         payPeriod: 'Månedslønnede, forud',
         status: 'pending',
+        enriched: true,
+        email: 'anders.sorensen@cafevirksomhed.dk',
+        phone: '+45 25 80 12 34',
+        address: 'Strandvejen 42',
+        postCode: '2900',
+        city: 'Hellerup',
     },
     {
         id: 'emp-2',

@@ -281,6 +281,7 @@ function SavingsTab() {
 function GeneralTab({ employee }: { employee: Employee }) {
     const t = da.editDialog;
     const f = t.fields;
+    const isEnriched = employee.enriched ?? false;
     const extracted = {
         cpr: true,
         fullName: true,
@@ -290,6 +291,13 @@ function GeneralTab({ employee }: { employee: Employee }) {
         employeeNumber: true,
         department: true,
         payPeriod: true,
+        // Address & contact are only extracted on enriched drafts (the
+        // prototype always includes one enriched draft per import batch).
+        postCode: isEnriched,
+        city: isEnriched,
+        address: isEnriched,
+        email: isEnriched,
+        phone: isEnriched,
     };
 
     return (
@@ -328,16 +336,25 @@ function GeneralTab({ employee }: { employee: Employee }) {
                     <div className="grid grid-cols-[110px_1fr] gap-2">
                         <Field>
                             <span className="text-xs font-bold">{f.postCode}*</span>
-                            <HighlightedInput highlighted={false} />
+                            <HighlightedInput
+                                highlighted={extracted.postCode}
+                                defaultValue={employee.postCode}
+                            />
                         </Field>
                         <Field>
                             <span className="text-xs font-bold">{f.city}*</span>
-                            <HighlightedInput highlighted={false} />
+                            <HighlightedInput
+                                highlighted={extracted.city}
+                                defaultValue={employee.city}
+                            />
                         </Field>
                     </div>
                     <Field>
                         <span className="text-xs font-bold">{f.address}*</span>
-                        <HighlightedInput highlighted={false} />
+                        <HighlightedInput
+                            highlighted={extracted.address}
+                            defaultValue={employee.address}
+                        />
                     </Field>
                 </div>
 
@@ -351,11 +368,17 @@ function GeneralTab({ employee }: { employee: Employee }) {
                     </Field>
                     <Field>
                         <span className="text-xs font-bold">{f.email}</span>
-                        <HighlightedInput highlighted={false} />
+                        <HighlightedInput
+                            highlighted={extracted.email}
+                            defaultValue={employee.email}
+                        />
                     </Field>
                     <Field>
                         <span className="text-xs font-bold">{f.phone}</span>
-                        <HighlightedInput highlighted={false} />
+                        <HighlightedInput
+                            highlighted={extracted.phone}
+                            defaultValue={employee.phone}
+                        />
                     </Field>
                 </div>
 

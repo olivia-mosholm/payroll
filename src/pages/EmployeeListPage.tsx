@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button, Menu, Icon } from '@economic/taco';
 import { EmptyState } from '../features/employee-onboarding/EmptyState';
 import { DropZone } from '../features/employee-onboarding/DropZone';
@@ -12,6 +12,7 @@ import { ImportDialog } from '../features/employee-onboarding/ImportDialog';
 import { mockEmployees, type Employee } from '../data/mockEmployees';
 import {
     setEmployees as setStoreEmployees,
+    appendEmployees as appendStoreEmployees,
     useEmployees,
 } from '../store/employeesStore';
 import { da } from '../data/danishCopy';
@@ -99,24 +100,58 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
     const handleProcess = () => {
         setProcessing(true);
         const filesSnapshot = files;
+        // Every dropped file produces a draft. Prototype always shows at
+        // least 3 drafts when there is any source file, so the test
+        // experience is consistent.
+        const MIN_DRAFTS = 3;
+        const fileCount = filesSnapshot.length;
+        const draftCount =
+            fileCount === 0
+                ? 0
+                : Math.min(
+                      mockEmployees.length,
+                      Math.max(fileCount, MIN_DRAFTS)
+                  );
+        const createdEmployees = mockEmployees.slice(0, draftCount);
         window.setTimeout(() => {
             setProcessing(false);
-            setStoreEmployees(mockEmployees);
-            setDemoState('processed');
-            if (editMode === 'modal') {
-                setProcessedSummary({
-                    files: filesSnapshot,
-                    employees: mockEmployees,
-                });
-            }
+            // Stage the drafts in the summary modal; they are committed to
+            // the store only when the user clicks "Opret kladder".
+            setProcessedSummary({
+                mode: 'create',
+                files: filesSnapshot,
+                employees: createdEmployees,
+            });
         }, 2000);
     };
 
+    const handleConfirmCreate = () => {
+        if (!processedSummary) return;
+        if (processedSummary.mode === 'create') {
+            setStoreEmployees(processedSummary.employees);
+            setDemoState('processed');
+        } else {
+            appendStoreEmployees(processedSummary.employees);
+        }
+        setProcessedSummary(null);
+    };
+
     // Dialog now handles appending itself; this is a no-op confirmation hook.
-    const handleImportComplete = () => {};
+    const handleImportComplete = (
+        info?: { files: UploadedFile[]; employees: Employee[] }
+    ) => {
+        if (info) {
+            setProcessedSummary({
+                mode: 'append',
+                files: info.files,
+                employees: info.employees,
+            });
+        }
+    };
 
     const [modalEmployee, setModalEmployee] = useState<Employee | null>(null);
     const [processedSummary, setProcessedSummary] = useState<{
+        mode: 'create' | 'append';
         files: UploadedFile[];
         employees: Employee[];
     } | null>(null);
@@ -135,14 +170,6 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                 <h1 className="text-3xl font-normal leading-9 text-neutral-900">
                     {da.page.title}
                 </h1>
-                {demoState === 'processed' && (
-                    <Link
-                        to={variantPaths.optionsPreview}
-                        className="text-xs text-neutral-500 hover:text-neutral-900 underline"
-                    >
-                        {da.options.viewLink}
-                    </Link>
-                )}
             </div>
 
             {demoState === 'processed' ? (
@@ -241,19 +268,19 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                 onProcessed={handleImportComplete}
             />
 
+            <ProcessingCompletedDialog
+                open={processedSummary !== null}
+                onClose={() => setProcessedSummary(null)}
+                onConfirm={handleConfirmCreate}
+                files={processedSummary?.files ?? []}
+                employees={processedSummary?.employees ?? []}
+            />
+
             {editMode === 'modal' && (
-                <>
-                    <EmployeeEditDialogV2
-                        employee={modalEmployee}
-                        onClose={() => setModalEmployee(null)}
-                    />
-                    <ProcessingCompletedDialog
-                        open={processedSummary !== null}
-                        onClose={() => setProcessedSummary(null)}
-                        files={processedSummary?.files ?? []}
-                        employees={processedSummary?.employees ?? []}
-                    />
-                </>
+                <EmployeeEditDialogV2
+                    employee={modalEmployee}
+                    onClose={() => setModalEmployee(null)}
+                />
             )}
 
             {editMode === 'schedule' && (

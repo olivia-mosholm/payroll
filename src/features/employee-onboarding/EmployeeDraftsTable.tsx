@@ -1,4 +1,4 @@
-import { Table3, Badge, Icon, type Color } from '@economic/taco';
+import { Table3, Badge, type Color } from '@economic/taco';
 import type { Employee, EmployeeStatus } from '../../data/mockEmployees';
 import { da } from '../../data/danishCopy';
 
@@ -77,13 +77,7 @@ export function EmployeeDraftsTable({ employees, onRowClick }: Props) {
                 header={da.table.plannedChanges}
                 align="center"
                 defaultWidth={170}
-                renderer={({ row }) =>
-                    row.plannedChanges ? (
-                        <span className="inline-flex items-center justify-center text-neutral-700">
-                            <Icon name="period" />
-                        </span>
-                    ) : null
-                }
+                renderer={() => null}
             />
             <Table3.Column<Employee>
                 accessor="status"

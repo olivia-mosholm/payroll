@@ -93,15 +93,27 @@ export const da = {
         addPayType: 'Tilføj løntype',
     },
     processedDialog: {
-        title: 'Dokumenter behandlet',
-        intro: 'AI har gennemgået dine dokumenter og oprettet medarbejderudkast. Gennemgå og rediger udkastene før du gemmer dem.',
-        readDocs: 'Behandlede dokumenter',
-        createdEmployees: 'Oprettede medarbejderudkast',
-        continue: 'Opret medarbejder',
+        titleN: (n: number) =>
+            `${n} ${n === 1 ? 'kladde' : 'kladder'} klar til oprettelse`,
+        sectionCreated: 'Kladder klar til oprettelse',
+        sectionFailed: 'Kunne ikke læses',
+        draftBadge: 'Kladde',
+        errorPoorScan: 'Lav scanningskvalitet — prøv et tydeligere billede',
+        tryAgain: 'Prøv igen',
+        confirm: 'Opret kladder',
     },
     importDialog: {
-        title: 'Importér medarbejdere fra dokumenter',
+        title: 'Hurtig import',
         intro: 'Træk lønsedler, regneark eller billeder ind for at oprette nye medarbejderudkast oven på din eksisterende liste.',
+        readySubtitle: (n: number) =>
+            `${n} ${n === 1 ? 'fil' : 'filer'} klar til behandling. Du kan fjerne enkelte filer før du starter.`,
+        fileReady: 'Klar til behandling',
+        whatHappensTitle: 'Hvad sker der nu?',
+        whatHappensBody:
+            'Vi læser hver fil, finder navne, CPR og lønforhold, og opretter en kladde pr. medarbejder. Du gennemgår dem inden de bliver aktive.',
+        addMore: 'Tilføj flere...',
+        processN: (n: number) =>
+            `Behandl ${n} ${n === 1 ? 'fil' : 'filer'}`,
         analyzing: 'Analyserer dine filer og matcher mod eksisterende medarbejdere...',
         preview: {
             heading: 'AI har matched dine filer',
