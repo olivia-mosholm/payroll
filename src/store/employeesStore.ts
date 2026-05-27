@@ -18,6 +18,20 @@ export function appendEmployees(extra: Employee[]) {
     emit();
 }
 
+/**
+ * Apply a partial patch to a single employee. Used by the import flow to
+ * enrich existing drafts with extra fields extracted from a new document,
+ * or to override individual fields when the user resolves a conflict.
+ * Patched employees are flagged `enriched: true` so the detail page knows
+ * to highlight the newly added fields.
+ */
+export function updateEmployee(id: string, patch: Partial<Employee>) {
+    employees = employees.map((e) =>
+        e.id === id ? { ...e, ...patch, enriched: true } : e,
+    );
+    emit();
+}
+
 export function clearEmployees() {
     employees = [];
     emit();

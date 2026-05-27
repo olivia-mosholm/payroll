@@ -160,13 +160,22 @@ export const danishToEnglish: Record<string, string> = {
     'Gennemgå hvad der bliver opdateret og oprettet, før du bekræfter.':
         'Review what will be updated and created before confirming.',
     'Opdaterer eksisterende udkast': 'Updating existing drafts',
+    'Konflikter — vælg hvilken værdi der gælder':
+        'Conflicts — choose which value applies',
     'Opretter nye udkast': 'Creating new drafts',
     opdateres: 'updated',
+    konflikt: 'conflict',
     nyt: 'new',
     'CPR-match': 'Civil reg. match',
     'Navne-match': 'Name match',
-    'ingen match — oprettes som nyt udkast':
-        'no match — created as new draft',
+    'Ingen match — oprettes som nyt udkast':
+        'No match — created as new draft',
+    'Eksisterende værdi': 'Existing value',
+    'Ny værdi fra dokument': 'New value from document',
+    'Behold eksisterende': 'Keep existing',
+    'Erstat med ny': 'Replace with new',
+    'Vælg en handling for hver konflikt før du kan bekræfte importen.':
+        'Choose an action for each conflict before you can confirm the import.',
     'AI fandt ingen brugbar information i de uploadede filer.':
         'AI found no usable information in the uploaded files.',
     'Bekræft import': 'Confirm import',
@@ -397,6 +406,31 @@ export const dynamicPatterns: RegexPattern[] = [
         en: /^Creating (\d+) new drafts$/,
         toEn: (m) => `Creating ${m[1]} new drafts`,
         toDa: (m) => `Opretter ${m[1]} nye udkast`,
+    },
+    // ImportDialog preview header: "1 udkast opdateres · 1 konflikt · 1 nye udkast"
+    // (uses the same noun forms regardless of count by design)
+    {
+        da: /^(\d+) udkast opdateres · (\d+) (konflikt|konflikter) · (\d+) (nyt udkast|nye udkast)$/,
+        en: /^(\d+) drafts updated · (\d+) (conflict|conflicts) · (\d+) (new draft|new drafts)$/,
+        toEn: (m) => {
+            const conflict = m[3] === 'konflikt' ? 'conflict' : 'conflicts';
+            const creates =
+                m[5] === 'nyt udkast' ? 'new draft' : 'new drafts';
+            return `${m[1]} drafts updated · ${m[2]} ${conflict} · ${m[4]} ${creates}`;
+        },
+        toDa: (m) => {
+            const konflikt = m[3] === 'conflict' ? 'konflikt' : 'konflikter';
+            const nye =
+                m[5] === 'new draft' ? 'nyt udkast' : 'nye udkast';
+            return `${m[1]} udkast opdateres · ${m[2]} ${konflikt} · ${m[4]} ${nye}`;
+        },
+    },
+    // Source-file caption: "Fra Lønsedler_marts_2026.pdf"
+    {
+        da: /^Fra (.+)$/,
+        en: /^From (.+)$/,
+        toEn: (m) => `From ${m[1]}`,
+        toDa: (m) => `Fra ${m[1]}`,
     },
 ];
 

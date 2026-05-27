@@ -121,16 +121,30 @@ export const da = {
         analyzing: 'Analyserer dine filer og matcher mod eksisterende medarbejdere...',
         preview: {
             heading: 'AI har matched dine filer',
-            sub: 'Gennemgå hvad der bliver opdateret og oprettet, før du bekræfter.',
+            subN: (
+                updates: number,
+                conflicts: number,
+                creates: number,
+            ) =>
+                `${updates} ${updates === 1 ? 'udkast opdateres' : 'udkast opdateres'} · ${conflicts} ${conflicts === 1 ? 'konflikt' : 'konflikter'} · ${creates} ${creates === 1 ? 'nyt udkast' : 'nye udkast'}`,
             updatesHeading: 'Opdaterer eksisterende udkast',
+            conflictsHeading: 'Konflikter — vælg hvilken værdi der gælder',
             createsHeading: 'Opretter nye udkast',
             updateBadge: 'opdateres',
+            conflictBadge: 'konflikt',
             createBadge: 'nyt',
             matchCpr: 'CPR-match',
             matchName: 'Navne-match',
             newFields: (n: number) => `${n} ${n === 1 ? 'nyt felt' : 'nye felter'}`,
+            fromFile: (file: string) => `Fra ${file}`,
+            existingLabel: 'Eksisterende værdi',
+            newLabel: 'Ny værdi fra dokument',
+            keepExisting: 'Behold eksisterende',
+            overrideWithNew: 'Erstat med ny',
+            resolveAllHint:
+                'Vælg en handling for hver konflikt før du kan bekræfte importen.',
             unnamed: 'Ny medarbejder',
-            noMatch: 'ingen match — oprettes som nyt udkast',
+            noMatch: 'Ingen match — oprettes som nyt udkast',
             empty: 'AI fandt ingen brugbar information i de uploadede filer.',
         },
         actions: {
