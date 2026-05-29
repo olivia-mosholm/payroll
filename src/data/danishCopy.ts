@@ -155,7 +155,7 @@ export const da = {
         },
         actions: {
             cancel: 'Annullér',
-            confirm: 'Bekræft import',
+            confirm: 'Opret/opdater kladder',
             back: 'Tilbage',
         },
     },

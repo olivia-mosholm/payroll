@@ -168,7 +168,7 @@ export const danishToEnglish: Record<string, string> = {
     'Erstat med ny': 'Replace with new',
     'AI fandt ingen brugbar information i de uploadede filer.':
         'AI found no usable information in the uploaded files.',
-    'Bekræft import': 'Confirm import',
+    'Opret/opdater kladder': 'Create/update drafts',
 
     // --- Edit dialog -----------------------------------------------------
     'Gennemgå de udtrukne oplysninger': 'Review the extracted information',
