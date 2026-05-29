@@ -202,7 +202,7 @@ function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
     const t = da.importDialog.preview;
     return (
         <li className="flex flex-col w-full bg-white border border-grey-300 rounded-lg overflow-hidden">
-            <div className="px-4 py-2.5">
+            <div className="px-3 py-2.5">
                 <RowHeader
                     name={enrichment.employee.name}
                     metaParts={[
@@ -212,7 +212,7 @@ function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
                     ]}
                 />
             </div>
-            <dl className="border-t border-grey-200 px-4 py-2.5 grid grid-cols-[100px_1fr] gap-x-3 gap-y-1 text-xs items-center">
+            <dl className="border-t border-grey-200 px-3 py-2.5 grid grid-cols-[100px_1fr] gap-x-3 gap-y-1 text-xs items-center">
                 {enrichment.fields.map((f) => (
                     <Fragment key={String(f.key)}>
                         <dt className="text-neutral-500">{f.label}</dt>
@@ -240,7 +240,7 @@ function ConflictCard({
     const t = da.importDialog.preview;
     return (
         <li className="flex flex-col w-full bg-white border border-grey-300 rounded-lg overflow-hidden">
-            <div className="px-4 py-3">
+            <div className="px-3 py-2.5">
                 <RowHeader
                     name={conflict.employee.name}
                     metaParts={[
@@ -249,7 +249,7 @@ function ConflictCard({
                     ]}
                 />
             </div>
-            <div className="border-t border-grey-200 px-4 py-3 flex flex-col gap-4">
+            <div className="border-t border-grey-200 px-3 py-3 flex flex-col gap-4">
                 {conflict.fields.map((f) => {
                     const choice =
                         resolutions[String(f.key)] ?? 'override';
@@ -383,7 +383,7 @@ function ConflictRadioOption({
 function NewDraftCard({ creation }: { creation: Creation }) {
     const t = da.importDialog.preview;
     return (
-        <li className="flex items-center gap-3 w-full px-4 py-3 bg-white border border-grey-300 rounded-lg">
+        <li className="flex items-center gap-3 w-full px-3 py-2.5 bg-white border border-grey-300 rounded-lg">
             <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-grey-100 text-neutral-700 shrink-0">
                 <Icon name="document" />
             </span>
