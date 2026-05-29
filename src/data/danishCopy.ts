@@ -200,9 +200,53 @@ export const da = {
     detailPage: {
         back: 'Tilbage',
         more: 'Mere',
+        actions: 'Handlinger',
         edit: 'Redigér',
         currentYear: 'Indeværende år',
         previousYear: 'Sidste år',
+        sections: {
+            personalInfo: 'Personoplysninger',
+            payment: 'Lønudbetaling',
+            taxCard: 'Skattekort',
+            holiday: 'Ferie',
+        },
+        overviewTabs: {
+            overview: 'Oversigt',
+            balances: 'Balances',
+            holidaySavings: 'Ferie og opsparinger',
+            payHistory: 'Lønhistorik',
+        },
+        payment: {
+            bankReg: 'Reg.nr.',
+            bankAccount: 'Kontonr.',
+            iban: 'IBAN',
+            bicSwift: 'BIC/SWIFT',
+            payoutMethod: 'Udbetalingsmetode',
+            payoutMethodValue: 'NemKonto',
+            payFrequency: 'Lønfrekvens',
+            payFrequencyValue: 'Månedligt',
+        },
+        taxCard: {
+            cardType: 'Korttype',
+            aTaxPercent: 'A-skat %',
+            amContributionPercent: 'AM-bidrag %',
+            taxFreeAllowance: 'Frikort',
+            taxDebt: 'Restskat',
+            missingTitle: 'Mangler skattekort',
+            missingBody:
+                'Før medarbejderen kan gemmes, skal der tilknyttes et skattekort.',
+        },
+        holiday: {
+            scheme: 'Ferieordning',
+            schemeValue: 'Funktionær — løn under ferie',
+            statutory: 'Lovpligtige feriedage',
+            transferred: 'Overførte feriedage',
+            extra: 'Særlige feriedage',
+            vacationFund: 'Feriekonto',
+        },
+        fieldLabels: {
+            tin: 'TIN nr.',
+        },
         stats: {
             hours: 'Arbejdstimer ÅTD',
             hoursUnit: 't',

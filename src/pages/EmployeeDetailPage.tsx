@@ -1,9 +1,20 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, Badge, Button, Alert, Field, Input, Icon, type Color } from '@economic/taco';
+import {
+    Tabs,
+    Badge,
+    Button,
+    Alert,
+    Banner,
+    Icon,
+    Menu,
+    type Color,
+} from '@economic/taco';
 import { useEmployees } from '../store/employeesStore';
 import type { Employee, EmployeeStatus } from '../data/mockEmployees';
 import { da } from '../data/danishCopy';
 import { useVariantPaths } from '../paths';
+import { EmployeeEditDialogV2 } from '../features/employee-onboarding/EmployeeEditDialogV2';
 
 const STATUS_COLOR: Record<EmployeeStatus, Color> = {
     pending: 'orange',
@@ -17,7 +28,7 @@ const STATUS_LABEL: Record<EmployeeStatus, string> = {
     resigned: da.status.resigned,
 };
 
-const HIGHLIGHT = 'bg-yellow-100';
+// --- Stat cards ----------------------------------------------------------
 
 function StatCard({
     title,
@@ -29,8 +40,10 @@ function StatCard({
     subtitle?: string;
 }) {
     return (
-        <div className="flex-1 min-w-0 rounded-lg border border-neutral-200 bg-white px-4 py-3">
-            <p className="text-xs font-bold text-neutral-900 mb-1.5 mt-0">{title}</p>
+        <div className="flex-1 min-w-0 rounded-lg border border-grey-300 bg-white px-4 py-3">
+            <p className="text-xs font-bold text-neutral-900 mb-1.5 mt-0">
+                {title}
+            </p>
             <p className="text-2xl font-normal text-neutral-900 leading-tight truncate mb-0 mt-0">
                 {value}
             </p>
@@ -45,29 +58,332 @@ function GrossYtdCard() {
     const s = da.detailPage.stats;
     return (
         <div className="flex-1 min-w-0 rounded-lg border-2 border-blue-500 bg-white px-4 py-3">
-            <p className="text-xs font-bold text-neutral-900 mb-1.5 mt-0">{s.grossYtd}</p>
+            <p className="text-xs font-bold text-neutral-900 mb-1.5 mt-0">
+                {s.grossYtd}
+            </p>
             <p className="text-2xl font-normal text-blue-500 leading-tight truncate mb-0 mt-0">
                 0,00 {s.grossYtdCurrency}
             </p>
-            <p className="text-xs text-neutral-500 mt-1 mb-0">{s.grossYtdTotal}</p>
+            <p className="text-xs text-neutral-500 mt-1 mb-0">
+                {s.grossYtdTotal}
+            </p>
         </div>
     );
 }
 
-function HighlightedInput({
-    highlighted,
-    defaultValue,
+// --- Read-only field display --------------------------------------------
+
+function ReadOnlyField({
+    label,
+    value,
+    required,
+    highlight,
 }: {
-    highlighted: boolean;
-    defaultValue?: string;
+    label: string;
+    value: string | undefined;
+    required?: boolean;
+    highlight?: boolean;
 }) {
+    const display = value && value.length > 0 ? value : 'n/a';
+    const isMissing = !value;
     return (
-        <Input
-            defaultValue={defaultValue ?? ''}
-            className={highlighted ? HIGHLIGHT : undefined}
-        />
+        <div className="flex flex-col gap-1 min-w-0">
+            <dt className="text-xs font-bold text-neutral-900">
+                {label}
+                {required && '*'}
+            </dt>
+            <dd
+                className={`text-sm leading-5 truncate ${
+                    highlight
+                        ? 'inline-flex self-start bg-yellow-100 rounded px-2 py-0.5 -mx-2 text-neutral-900 font-medium max-w-full'
+                        : isMissing
+                          ? 'text-neutral-500'
+                          : 'text-neutral-900'
+                }`}
+                title={display}
+            >
+                {display}
+            </dd>
+        </div>
     );
 }
+
+// --- Section card --------------------------------------------------------
+
+function SectionCard({
+    id,
+    title,
+    onEdit,
+    children,
+    footer,
+}: {
+    id: string;
+    title: string;
+    onEdit: () => void;
+    children: React.ReactNode;
+    footer?: React.ReactNode;
+}) {
+    return (
+        <section
+            id={id}
+            className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
+        >
+            <header className="px-6 py-4 flex items-center justify-between">
+                <h2 className="text-base font-bold text-neutral-900">
+                    {title}
+                </h2>
+                <Button appearance="default" onClick={onEdit}>
+                    {da.detailPage.edit}
+                </Button>
+            </header>
+            <div className="px-6 pb-6 flex flex-col gap-4">
+                <dl className="grid grid-cols-3 gap-x-8 gap-y-5">
+                    {children}
+                </dl>
+                {footer}
+            </div>
+        </section>
+    );
+}
+
+// --- Section content ----------------------------------------------------
+
+function PersonalInfoSection({
+    employee,
+    onEdit,
+}: {
+    employee: Employee;
+    onEdit: () => void;
+}) {
+    const f = da.editDialog.fields;
+    const enriched = employee.enriched ?? false;
+    return (
+        <SectionCard
+            id="personoplysninger"
+            title={da.detailPage.sections.personalInfo}
+            onEdit={onEdit}
+        >
+            {/* Column 1 */}
+            <ReadOnlyField label={f.cpr} value={employee.cpr} required />
+            <ReadOnlyField
+                label={da.editDialog.fields.country}
+                value={da.editDialog.defaults.country}
+                required
+            />
+            <ReadOnlyField
+                label={f.employeeGroup}
+                value={da.editDialog.defaults.employeeGroup}
+            />
+
+            <ReadOnlyField label={f.fullName} value={employee.name} required />
+            <ReadOnlyField
+                label={da.detailPage.fieldLabels.tin}
+                value={undefined}
+            />
+            <div className="grid grid-cols-2 gap-4">
+                <ReadOnlyField
+                    label={f.employmentDate}
+                    value={employee.hireDate}
+                    required
+                    highlight={enriched}
+                />
+                <ReadOnlyField
+                    label={f.employeeNumber}
+                    value={employee.employeeNumber}
+                    required
+                    highlight={enriched}
+                />
+            </div>
+
+            <ReadOnlyField label={f.co} value={undefined} />
+            <ReadOnlyField
+                label={f.email}
+                value={employee.email}
+                highlight={enriched && !!employee.email}
+            />
+            <div />
+
+            <div className="grid grid-cols-[110px_1fr] gap-3">
+                <ReadOnlyField
+                    label={f.postCode}
+                    value={employee.postCode}
+                    required
+                    highlight={enriched && !!employee.postCode}
+                />
+                <ReadOnlyField
+                    label={f.city}
+                    value={employee.city}
+                    required
+                    highlight={enriched && !!employee.city}
+                />
+            </div>
+            <ReadOnlyField
+                label={f.phone}
+                value={employee.phone}
+                highlight={enriched && !!employee.phone}
+            />
+            <div />
+
+            <ReadOnlyField
+                label={f.address}
+                value={employee.address}
+                required
+                highlight={enriched && !!employee.address}
+            />
+        </SectionCard>
+    );
+}
+
+function PaymentSection({
+    employee,
+    onEdit,
+}: {
+    employee: Employee;
+    onEdit: () => void;
+}) {
+    const t = da.detailPage.payment;
+    return (
+        <section
+            id="lonudbetaling"
+            className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
+        >
+            <header className="px-6 py-4 flex items-center justify-between">
+                <h2 className="text-base font-bold text-neutral-900">
+                    {da.detailPage.sections.payment}
+                </h2>
+                <Button appearance="default" onClick={onEdit}>
+                    {da.detailPage.edit}
+                </Button>
+            </header>
+            <div className="px-6 pb-6">
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
+                    <ReadOnlyField label={t.bankReg} value={undefined} />
+                    <ReadOnlyField label={t.bankAccount} value={undefined} />
+                    <ReadOnlyField
+                        label={t.payoutMethod}
+                        value={t.payoutMethodValue}
+                    />
+                    <ReadOnlyField
+                        label={t.payFrequency}
+                        value={employee.payPeriod || t.payFrequencyValue}
+                    />
+                    <ReadOnlyField label={t.iban} value={undefined} />
+                    <ReadOnlyField label={t.bicSwift} value={undefined} />
+                </dl>
+            </div>
+        </section>
+    );
+}
+
+function TaxCardSection({ onEdit }: { onEdit: () => void }) {
+    const t = da.detailPage.taxCard;
+    return (
+        <section
+            id="skattekort"
+            className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
+        >
+            <header className="px-6 py-4 flex items-center justify-between">
+                <h2 className="text-base font-bold text-neutral-900">
+                    {da.detailPage.sections.taxCard}
+                </h2>
+                <Button appearance="default" onClick={onEdit}>
+                    {da.detailPage.edit}
+                </Button>
+            </header>
+            <div className="px-6 pb-6 flex flex-col gap-4">
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
+                    <ReadOnlyField label={t.cardType} value={undefined} />
+                    <ReadOnlyField label={t.aTaxPercent} value={undefined} />
+                    <ReadOnlyField label={t.amContributionPercent} value="8 %" />
+                    <ReadOnlyField label={t.taxFreeAllowance} value={undefined} />
+                    <ReadOnlyField label={t.taxDebt} value={undefined} />
+                </dl>
+                <Banner state="warning">
+                    <div className="flex flex-col gap-1">
+                        <strong>{t.missingTitle}</strong>
+                        <p className="mb-0">{t.missingBody}</p>
+                    </div>
+                </Banner>
+            </div>
+        </section>
+    );
+}
+
+function HolidaySection({
+    onEdit,
+}: {
+    onEdit: () => void;
+}) {
+    const t = da.detailPage.holiday;
+    return (
+        <section
+            id="ferie"
+            className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
+        >
+            <header className="px-6 py-4 flex items-center justify-between">
+                <h2 className="text-base font-bold text-neutral-900">
+                    {da.detailPage.sections.holiday}
+                </h2>
+                <Button appearance="default" onClick={onEdit}>
+                    {da.detailPage.edit}
+                </Button>
+            </header>
+            <div className="px-6 pb-6">
+                <dl className="grid grid-cols-3 gap-x-8 gap-y-5">
+                    <ReadOnlyField label={t.scheme} value={t.schemeValue} />
+                    <ReadOnlyField label={t.statutory} value="25 dage" />
+                    <ReadOnlyField label={t.extra} value="5 dage" />
+                    <ReadOnlyField label={t.transferred} value={undefined} />
+                    <ReadOnlyField label={t.vacationFund} value="FerieKonto" />
+                </dl>
+            </div>
+        </section>
+    );
+}
+
+// --- Anchor navigation --------------------------------------------------
+
+type SectionMeta = { id: string; label: string };
+
+function AnchorNav({
+    sections,
+    activeId,
+    onJump,
+}: {
+    sections: SectionMeta[];
+    activeId: string;
+    onJump: (id: string) => void;
+}) {
+    return (
+        <nav
+            aria-label="Sektionsnavigation"
+            className="sticky top-6 flex flex-col gap-px"
+        >
+            {sections.map((s) => {
+                const active = s.id === activeId;
+                return (
+                    <a
+                        key={s.id}
+                        href={`#${s.id}`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onJump(s.id);
+                        }}
+                        className={`pl-3 py-1.5 text-sm border-l-2 transition-colors ${
+                            active
+                                ? 'border-blue-500 text-blue-500 font-bold'
+                                : 'border-grey-300 text-neutral-700 hover:text-neutral-900'
+                        }`}
+                    >
+                        {s.label}
+                    </a>
+                );
+            })}
+        </nav>
+    );
+}
+
+// --- Existing legacy tab content (preserved) ----------------------------
 
 function YearToggle() {
     return (
@@ -103,7 +419,7 @@ function BalancesTab() {
     return (
         <div className="flex flex-col gap-4 pt-4">
             <YearToggle />
-            <div className="rounded-lg border border-neutral-200 bg-white">
+            <div className="rounded-lg border border-grey-300 bg-white">
                 <header className="px-6 py-4">
                     <h2 className="text-base font-bold text-neutral-900">
                         {t.sectionTitle}
@@ -111,7 +427,7 @@ function BalancesTab() {
                 </header>
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="text-left text-neutral-700 border-b border-neutral-200">
+                        <tr className="text-left text-neutral-700 border-b border-grey-300">
                             <th className="font-bold px-6 py-3 w-20">{t.colNo}</th>
                             <th className="font-bold px-6 py-3">{t.colItem}</th>
                             <th className="font-bold px-6 py-3 text-right">
@@ -123,7 +439,7 @@ function BalancesTab() {
                         {rows.map((row, i) => (
                             <tr
                                 key={i}
-                                className="border-b border-neutral-100 last:border-b-0"
+                                className="border-b border-grey-200 last:border-b-0"
                             >
                                 <td className="px-6 py-3 text-neutral-700">
                                     {row.no ?? ''}
@@ -143,25 +459,25 @@ function BalancesTab() {
     );
 }
 
-function VacationTab() {
-    const t = da.detailPage.vacation;
+function VacationSavingsTab() {
+    const v = da.detailPage.vacation;
     const days = [
         {
-            type: t.statutory,
+            type: v.statutory,
             period: '01.09.25 - 31.08.26',
             earned: '0,00',
             taken: '0,00',
             rest: '0,00',
         },
         {
-            type: t.statutory,
+            type: v.statutory,
             period: '01.09.24 - 31.08.25',
             earned: '0,00',
             taken: '0,00',
             rest: '0,00',
         },
         {
-            type: t.transferred,
+            type: v.transferred,
             period: '',
             earned: '0,00',
             taken: '0,00',
@@ -170,10 +486,10 @@ function VacationTab() {
     ];
     return (
         <div className="flex flex-col gap-6 pt-4">
-            <div className="rounded-lg border border-neutral-200 bg-white">
+            <div className="rounded-lg border border-grey-300 bg-white">
                 <header className="flex items-center justify-between px-6 py-4">
                     <h2 className="text-base font-bold text-neutral-900">
-                        {t.sectionTitle}
+                        {v.sectionTitle}
                     </h2>
                     <button
                         type="button"
@@ -185,19 +501,19 @@ function VacationTab() {
                 </header>
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="text-left text-neutral-700 border-b border-neutral-200">
-                            <th className="font-bold px-6 py-3 w-32">{t.colType}</th>
+                        <tr className="text-left text-neutral-700 border-b border-grey-300">
+                            <th className="font-bold px-6 py-3 w-32">{v.colType}</th>
                             <th className="font-bold px-6 py-3">
-                                {t.colAccrualPeriod}
+                                {v.colAccrualPeriod}
                             </th>
                             <th className="font-bold px-6 py-3 text-right w-24">
-                                {t.colEarned}
+                                {v.colEarned}
                             </th>
                             <th className="font-bold px-6 py-3 text-right w-24">
-                                {t.colTaken}
+                                {v.colTaken}
                             </th>
                             <th className="font-bold px-6 py-3 text-right w-24">
-                                {t.colRemaining}
+                                {v.colRemaining}
                             </th>
                         </tr>
                     </thead>
@@ -205,19 +521,27 @@ function VacationTab() {
                         {days.map((d, i) => (
                             <tr
                                 key={i}
-                                className="border-b border-neutral-100"
+                                className="border-b border-grey-200"
                             >
-                                <td className="px-6 py-3 text-neutral-900">{d.type}</td>
+                                <td className="px-6 py-3 text-neutral-900">
+                                    {d.type}
+                                </td>
                                 <td className="px-6 py-3 text-neutral-700">
                                     {d.period}
                                 </td>
-                                <td className="px-6 py-3 text-right">{d.earned}</td>
-                                <td className="px-6 py-3 text-right">{d.taken}</td>
-                                <td className="px-6 py-3 text-right">{d.rest}</td>
+                                <td className="px-6 py-3 text-right">
+                                    {d.earned}
+                                </td>
+                                <td className="px-6 py-3 text-right">
+                                    {d.taken}
+                                </td>
+                                <td className="px-6 py-3 text-right">
+                                    {d.rest}
+                                </td>
                             </tr>
                         ))}
                         <tr className="font-bold">
-                            <td className="px-6 py-3">{t.total}</td>
+                            <td className="px-6 py-3">{v.total}</td>
                             <td className="px-6 py-3"></td>
                             <td className="px-6 py-3 text-right">0,00</td>
                             <td className="px-6 py-3 text-right">0,00</td>
@@ -226,18 +550,11 @@ function VacationTab() {
                     </tbody>
                 </table>
             </div>
-        </div>
-    );
-}
 
-function SavingsTab() {
-    const t = da.detailPage.vacation;
-    return (
-        <div className="flex flex-col gap-6 pt-4">
-            <div className="rounded-lg border border-neutral-200 bg-white">
+            <div className="rounded-lg border border-grey-300 bg-white">
                 <header className="flex items-center justify-between px-6 py-4">
                     <h2 className="text-base font-bold text-neutral-900">
-                        {t.taxSectionTitle}
+                        {v.taxSectionTitle}
                     </h2>
                     <button
                         type="button"
@@ -249,8 +566,8 @@ function SavingsTab() {
                 </header>
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="text-left text-neutral-700 border-b border-neutral-200">
-                            <th className="font-bold px-6 py-3">{t.taxColType}</th>
+                        <tr className="text-left text-neutral-700 border-b border-grey-300">
+                            <th className="font-bold px-6 py-3">{v.taxColType}</th>
                             <th className="font-bold px-6 py-3 text-right w-48">
                                 <div>{da.detailPage.currentYear}</div>
                                 <div className="text-xs font-normal text-neutral-500">
@@ -267,7 +584,7 @@ function SavingsTab() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="px-6 py-3">{t.taxBasis}</td>
+                            <td className="px-6 py-3">{v.taxBasis}</td>
                             <td className="px-6 py-3 text-right">0,00</td>
                             <td className="px-6 py-3 text-right">0,00 DKK</td>
                         </tr>
@@ -278,161 +595,86 @@ function SavingsTab() {
     );
 }
 
-function GeneralTab({ employee }: { employee: Employee }) {
-    const t = da.editDialog;
-    const f = t.fields;
-    const isEnriched = employee.enriched ?? false;
-    const extracted = {
-        cpr: true,
-        fullName: true,
-        country: false,
-        employeeGroup: false,
-        employmentDate: true,
-        employeeNumber: true,
-        department: true,
-        payPeriod: true,
-        // Address & contact are only extracted on enriched drafts (the
-        // prototype always includes one enriched draft per import batch).
-        postCode: isEnriched,
-        city: isEnriched,
-        address: isEnriched,
-        email: isEnriched,
-        phone: isEnriched,
-    };
-
+function PayHistoryTab() {
     return (
-        <div className="flex flex-col gap-4 pt-4">
-            <Alert state="information" title={t.alertTitle}>
-                {t.alertBody}
-            </Alert>
-
-            <h3 className="text-sm font-bold text-neutral-900 mt-2">
-                {t.sectionGeneral}
-            </h3>
-
-            <div className="grid grid-cols-3 gap-x-6 gap-y-4">
-                <div className="flex flex-col gap-4">
-                    <Field>
-                        <span className="text-xs font-bold">{f.cpr}*</span>
-                        <div className="flex gap-2 items-start">
-                            <HighlightedInput
-                                highlighted={extracted.cpr}
-                                defaultValue={employee.cpr}
-                            />
-                            <Button appearance="default">{f.fetchCpr}</Button>
-                        </div>
-                    </Field>
-                    <Field>
-                        <span className="text-xs font-bold">{f.fullName}*</span>
-                        <HighlightedInput
-                            highlighted={extracted.fullName}
-                            defaultValue={employee.name}
-                        />
-                    </Field>
-                    <Field>
-                        <span className="text-xs font-bold">{f.co}</span>
-                        <HighlightedInput highlighted={false} />
-                    </Field>
-                    <div className="grid grid-cols-[110px_1fr] gap-2">
-                        <Field>
-                            <span className="text-xs font-bold">{f.postCode}*</span>
-                            <HighlightedInput
-                                highlighted={extracted.postCode}
-                                defaultValue={employee.postCode}
-                            />
-                        </Field>
-                        <Field>
-                            <span className="text-xs font-bold">{f.city}*</span>
-                            <HighlightedInput
-                                highlighted={extracted.city}
-                                defaultValue={employee.city}
-                            />
-                        </Field>
-                    </div>
-                    <Field>
-                        <span className="text-xs font-bold">{f.address}*</span>
-                        <HighlightedInput
-                            highlighted={extracted.address}
-                            defaultValue={employee.address}
-                        />
-                    </Field>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                    <Field>
-                        <span className="text-xs font-bold">{f.country}*</span>
-                        <HighlightedInput
-                            highlighted={extracted.country}
-                            defaultValue={t.defaults.country}
-                        />
-                    </Field>
-                    <Field>
-                        <span className="text-xs font-bold">{f.email}</span>
-                        <HighlightedInput
-                            highlighted={extracted.email}
-                            defaultValue={employee.email}
-                        />
-                    </Field>
-                    <Field>
-                        <span className="text-xs font-bold">{f.phone}</span>
-                        <HighlightedInput
-                            highlighted={extracted.phone}
-                            defaultValue={employee.phone}
-                        />
-                    </Field>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                    <Field>
-                        <span className="text-xs font-bold">{f.employeeGroup}</span>
-                        <HighlightedInput
-                            highlighted={extracted.employeeGroup}
-                            defaultValue={t.defaults.employeeGroup}
-                        />
-                    </Field>
-                    <div className="grid grid-cols-[1fr_1fr] gap-2">
-                        <Field>
-                            <span className="text-xs font-bold">{f.employmentDate}*</span>
-                            <HighlightedInput
-                                highlighted={extracted.employmentDate}
-                                defaultValue={employee.hireDate}
-                            />
-                        </Field>
-                        <Field>
-                            <span className="text-xs font-bold">{f.employeeNumber}*</span>
-                            <HighlightedInput
-                                highlighted={extracted.employeeNumber}
-                                defaultValue={employee.employeeNumber}
-                            />
-                        </Field>
-                    </div>
-                    <Field>
-                        <span className="text-xs font-bold">{f.department}</span>
-                        <HighlightedInput
-                            highlighted={extracted.department}
-                            defaultValue={employee.department}
-                        />
-                    </Field>
-                    <Field>
-                        <span className="text-xs font-bold">{f.payPeriod}</span>
-                        <HighlightedInput
-                            highlighted={extracted.payPeriod}
-                            defaultValue={employee.payPeriod}
-                        />
-                    </Field>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function PlaceholderTab() {
-    return (
-        <div className="py-12 text-sm text-neutral-500 text-center">
+        <div className="py-16 text-sm text-neutral-500 text-center">
             {da.editDialog.tabPlaceholder}
         </div>
     );
 }
+
+// --- Overview tab (the new stacked-cards layout) ------------------------
+
+const SECTIONS: SectionMeta[] = [
+    { id: 'personoplysninger', label: da.detailPage.sections.personalInfo },
+    { id: 'lonudbetaling', label: da.detailPage.sections.payment },
+    { id: 'skattekort', label: da.detailPage.sections.taxCard },
+    { id: 'ferie', label: da.detailPage.sections.holiday },
+];
+
+function OverviewTab({
+    employee,
+    onEdit,
+}: {
+    employee: Employee;
+    onEdit: () => void;
+}) {
+    const [activeId, setActiveId] = useState(SECTIONS[0].id);
+
+    useEffect(() => {
+        const ids = SECTIONS.map((s) => s.id);
+        const observer = new IntersectionObserver(
+            (entries) => {
+                // Pick the section whose top is closest to the viewport top.
+                const visible = entries.filter((e) => e.isIntersecting);
+                if (visible.length === 0) return;
+                visible.sort(
+                    (a, b) =>
+                        a.boundingClientRect.top - b.boundingClientRect.top,
+                );
+                const top = visible[0];
+                if (top) setActiveId(top.target.id);
+            },
+            // Anchor activates when the section's top is within the middle
+            // 40% of the viewport so the highlight moves smoothly as the
+            // user scrolls.
+            { rootMargin: '-20% 0px -50% 0px', threshold: 0 },
+        );
+        for (const id of ids) {
+            const el = document.getElementById(id);
+            if (el) observer.observe(el);
+        }
+        return () => observer.disconnect();
+    }, []);
+
+    const handleJump = (id: string) => {
+        const el = document.getElementById(id);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveId(id);
+    };
+
+    return (
+        <div className="flex gap-8 pt-6 items-start">
+            <div className="flex-1 min-w-0 flex flex-col gap-6">
+                <PersonalInfoSection employee={employee} onEdit={onEdit} />
+                <div className="grid grid-cols-2 gap-6">
+                    <PaymentSection employee={employee} onEdit={onEdit} />
+                    <TaxCardSection onEdit={onEdit} />
+                </div>
+                <HolidaySection onEdit={onEdit} />
+            </div>
+            <aside className="w-44 shrink-0">
+                <AnchorNav
+                    sections={SECTIONS}
+                    activeId={activeId}
+                    onJump={handleJump}
+                />
+            </aside>
+        </div>
+    );
+}
+
+// --- Page ----------------------------------------------------------------
 
 export function EmployeeDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -441,8 +683,14 @@ export function EmployeeDetailPage() {
     const employees = useEmployees();
     const employee = employees.find((e) => e.id === id);
     const backToList = `${variantPaths.employees}?state=processed`;
+    const [editing, setEditing] = useState(false);
 
-    if (!employee) {
+    const stats = useMemo(() => {
+        if (!employee) return null;
+        return da.detailPage.stats;
+    }, [employee]);
+
+    if (!employee || !stats) {
         return (
             <div className="flex flex-col gap-4">
                 <button
@@ -460,7 +708,7 @@ export function EmployeeDetailPage() {
         );
     }
 
-    const s = da.detailPage.stats;
+    const tabs = da.detailPage.overviewTabs;
 
     return (
         <div className="flex flex-col gap-6">
@@ -480,76 +728,76 @@ export function EmployeeDetailPage() {
                 <Badge color={STATUS_COLOR[employee.status]} subtle>
                     {STATUS_LABEL[employee.status]}
                 </Badge>
-                <Button appearance="default">
-                    {da.detailPage.more}
-                    <Icon name="chevron-down" />
+                <Button
+                    appearance="default"
+                    menu={(props) => (
+                        <Menu {...props}>
+                            <Menu.Content>
+                                <Menu.Item
+                                    onClick={() => setEditing(true)}
+                                >
+                                    {da.detailPage.edit}
+                                </Menu.Item>
+                                <Menu.Item disabled>
+                                    {da.actions.morePlaceholder}
+                                </Menu.Item>
+                            </Menu.Content>
+                        </Menu>
+                    )}
+                >
+                    {da.detailPage.actions}
                 </Button>
             </div>
 
             <div className="flex items-stretch gap-3">
-                <StatCard title={s.hours} value={`0,00 ${s.hoursUnit}`} />
+                <StatCard title={stats.hours} value={`0,00 ${stats.hoursUnit}`} />
                 <StatCard
-                    title={s.remainingVacation}
-                    value={`0,00 ${s.remainingVacationUnit}`}
-                    subtitle={s.payDuringVacation}
+                    title={stats.remainingVacation}
+                    value={`0,00 ${stats.remainingVacationUnit}`}
+                    subtitle={stats.payDuringVacation}
                 />
-                <StatCard title={s.payPeriod} value={s.payPeriodValue} />
+                <StatCard title={stats.payPeriod} value={stats.payPeriodValue} />
                 <StatCard
-                    title={s.nextPayment}
-                    value={s.nextPaymentValue}
-                    subtitle={s.nextPaymentSubtitle}
+                    title={stats.nextPayment}
+                    value={stats.nextPaymentValue}
+                    subtitle={stats.nextPaymentSubtitle}
                 />
                 <GrossYtdCard />
             </div>
 
-            <Tabs defaultId="personal-info">
+            <Tabs defaultId="overview">
                 <Tabs.List>
-                    <Tabs.Trigger id="personal-info">
-                        {da.detailPage.tabs.personalInfo}
+                    <Tabs.Trigger id="overview">{tabs.overview}</Tabs.Trigger>
+                    <Tabs.Trigger id="balances">{tabs.balances}</Tabs.Trigger>
+                    <Tabs.Trigger id="holiday-savings">
+                        {tabs.holidaySavings}
                     </Tabs.Trigger>
-                    <Tabs.Trigger id="employment">
-                        {da.detailPage.tabs.employment}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="vacation">
-                        {da.detailPage.tabs.vacation}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="salary">
-                        {da.detailPage.tabs.salary}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="pension">
-                        {da.detailPage.tabs.pension}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="options">
-                        {da.detailPage.tabs.options}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="statistics">
-                        {da.detailPage.tabs.statistics}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="registration">
-                        {da.detailPage.tabs.registration}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="balances">
-                        {da.detailPage.tabs.balances}
-                    </Tabs.Trigger>
-                    <Tabs.Trigger id="savings">
-                        {da.detailPage.tabs.savings}
+                    <Tabs.Trigger id="pay-history">
+                        {tabs.payHistory}
                     </Tabs.Trigger>
                 </Tabs.List>
 
-                <Tabs.Content id="personal-info"><GeneralTab employee={employee} /></Tabs.Content>
-                <Tabs.Content id="employment"><PlaceholderTab /></Tabs.Content>
-                <Tabs.Content id="vacation"><PlaceholderTab /></Tabs.Content>
-                <Tabs.Content id="salary"><PlaceholderTab /></Tabs.Content>
-                <Tabs.Content id="pension"><PlaceholderTab /></Tabs.Content>
-                <Tabs.Content id="options"><PlaceholderTab /></Tabs.Content>
-                <Tabs.Content id="statistics"><PlaceholderTab /></Tabs.Content>
-                <Tabs.Content id="registration"><PlaceholderTab /></Tabs.Content>
-                <Tabs.Content id="balances"><BalancesTab /></Tabs.Content>
-                <Tabs.Content id="savings">
-                    <VacationTab />
-                    <SavingsTab />
+                <Tabs.Content id="overview">
+                    <OverviewTab
+                        employee={employee}
+                        onEdit={() => setEditing(true)}
+                    />
+                </Tabs.Content>
+                <Tabs.Content id="balances">
+                    <BalancesTab />
+                </Tabs.Content>
+                <Tabs.Content id="holiday-savings">
+                    <VacationSavingsTab />
+                </Tabs.Content>
+                <Tabs.Content id="pay-history">
+                    <PayHistoryTab />
                 </Tabs.Content>
             </Tabs>
+
+            <EmployeeEditDialogV2
+                employee={editing ? employee : null}
+                onClose={() => setEditing(false)}
+            />
         </div>
     );
 }
