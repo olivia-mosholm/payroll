@@ -212,15 +212,12 @@ function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
                     ]}
                 />
             </div>
-            <dl className="border-t border-grey-200 px-3 py-2.5 flex flex-col gap-2 text-xs">
+            <dl className="border-t border-grey-200 px-3 py-2 flex flex-col gap-1 text-xs">
                 {enrichment.fields.map((f) => (
-                    <div
-                        key={String(f.key)}
-                        className="flex flex-col gap-0.5"
-                    >
+                    <div key={String(f.key)} className="flex flex-col">
                         <dt className="text-neutral-500">{f.label}</dt>
                         <dd>
-                            <span className="rounded bg-yellow-100 text-neutral-900 inline-block max-w-full truncate px-1.5 py-0.5 -ml-1.5">
+                            <span className="rounded bg-yellow-100 text-neutral-900 inline-block max-w-full truncate px-1.5 py-px -ml-1.5">
                                 {f.value}
                             </span>
                         </dd>
