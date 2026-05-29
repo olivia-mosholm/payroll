@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Dialog, Button, Spinner, Badge, Icon } from '@economic/taco';
 import { DropZone } from './DropZone';
 import {
@@ -202,7 +202,7 @@ function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
     const t = da.importDialog.preview;
     return (
         <li className="flex flex-col w-full bg-white border border-grey-300 rounded-lg overflow-hidden">
-            <div className="px-4 py-3">
+            <div className="px-4 py-2.5">
                 <RowHeader
                     name={enrichment.employee.name}
                     metaParts={[
@@ -212,28 +212,18 @@ function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
                     ]}
                 />
             </div>
-            <div className="border-t border-grey-200 px-4 py-3">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2">
-                    {t.newFieldsLabel}
-                </p>
-                <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1.5">
-                    {enrichment.fields.map((f) => (
-                        <div
-                            key={String(f.key)}
-                            className="contents text-xs"
-                        >
-                            <dt className="text-neutral-500 self-center">
-                                {f.label}
-                            </dt>
-                            <dd className="self-center">
-                                <span className="rounded px-2 py-0.5 bg-yellow-100 text-neutral-900 inline-block max-w-full truncate">
-                                    {f.value}
-                                </span>
-                            </dd>
-                        </div>
-                    ))}
-                </dl>
-            </div>
+            <dl className="border-t border-grey-200 px-4 py-2.5 grid grid-cols-[100px_1fr] gap-x-3 gap-y-1 text-xs items-center">
+                {enrichment.fields.map((f) => (
+                    <Fragment key={String(f.key)}>
+                        <dt className="text-neutral-500">{f.label}</dt>
+                        <dd>
+                            <span className="rounded px-2 py-0.5 bg-yellow-100 text-neutral-900 inline-block max-w-full truncate">
+                                {f.value}
+                            </span>
+                        </dd>
+                    </Fragment>
+                ))}
+            </dl>
         </li>
     );
 }
