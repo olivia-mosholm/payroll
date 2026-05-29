@@ -3770,9 +3770,6 @@ table[data-taco='table3'] td[data-taco='save-status'] [data-taco='spinner'] svg 
 .gap-4 {
   gap: 1rem;
 }
-.gap-5 {
-  gap: 1.25rem;
-}
 .gap-6 {
   gap: 1.5rem;
 }
@@ -4769,9 +4766,6 @@ table[data-taco='table3'] td[data-taco='save-status'] [data-taco='spinner'] svg 
 .ring-blue-500 {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(69 115 210 / var(--tw-ring-opacity, 1));
-}
-.ring-blue-500\/30 {
-  --tw-ring-color: rgb(69 115 210 / 0.3);
 }
 .blur {
   --tw-blur: blur(8px);

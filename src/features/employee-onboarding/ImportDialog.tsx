@@ -207,8 +207,7 @@ function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
                         <span className="text-neutral-500 min-w-[80px]">
                             {f.label}
                         </span>
-                        <span className="rounded px-2 py-0.5 bg-yellow-100 text-neutral-900 font-medium inline-flex items-center gap-1">
-                            <Icon name="ai-stars" />
+                        <span className="rounded px-2 py-0.5 bg-yellow-100 text-neutral-900">
                             {f.value}
                         </span>
                     </li>
@@ -231,8 +230,8 @@ function ConflictCard({
     return (
         <li className="flex flex-col gap-4 w-full px-4 py-3 bg-white border border-grey-300 rounded-lg">
             <div className="flex items-start gap-3">
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded text-orange-700 shrink-0">
-                    <Icon name="warning" />
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded text-neutral-500 shrink-0">
+                    <Icon name="user" />
                 </span>
                 <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -310,7 +309,7 @@ function ConflictValueOption({
             ? 'bg-yellow-100 text-neutral-900'
             : 'bg-grey-100 text-neutral-700';
     const borderClass = selected
-        ? 'border-blue-500 ring-2 ring-blue-500/30'
+        ? 'border-blue-500'
         : 'border-grey-300 hover:border-grey-500';
     return (
         <button
@@ -563,30 +562,30 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                     )}
 
                     {step === 'preview' && (
-                        <div className="flex items-center justify-between gap-3 w-full">
+                        <div className="flex items-center justify-end gap-3 w-full">
+                            {!conflictsResolved &&
+                                preview &&
+                                preview.conflicts.length > 0 && (
+                                    <span className="text-xs text-neutral-500">
+                                        {
+                                            da.importDialog.preview
+                                                .resolveAllHint
+                                        }
+                                    </span>
+                                )}
                             <Button
                                 appearance="default"
                                 onClick={handleBackToFiles}
                             >
-                                ← {t.actions.back}
+                                {t.actions.back}
                             </Button>
-                            <div className="flex items-center gap-3">
-                                {!conflictsResolved &&
-                                    preview &&
-                                    preview.conflicts.length > 0 && (
-                                        <span className="text-xs text-orange-700">
-                                            {da.importDialog.preview
-                                                .resolveAllHint}
-                                        </span>
-                                    )}
-                                <Button
-                                    appearance="primary"
-                                    onClick={handleConfirm}
-                                    disabled={!conflictsResolved}
-                                >
-                                    {t.actions.confirm}
-                                </Button>
-                            </div>
+                            <Button
+                                appearance="primary"
+                                onClick={handleConfirm}
+                                disabled={!conflictsResolved}
+                            >
+                                {t.actions.confirm}
+                            </Button>
                         </div>
                     )}
                 </Dialog.Footer>
@@ -610,23 +609,18 @@ function PreviewBody({
 }) {
     const t = da.importDialog.preview;
     return (
-        <div className="flex flex-col gap-5 py-2">
-            <div className="flex items-start gap-3">
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-100 text-green-700 shrink-0">
-                    <Icon name="ai-stars" />
-                </span>
-                <div className="flex flex-col gap-0.5">
-                    <h2 className="text-lg font-bold text-neutral-900">
-                        {t.heading}
-                    </h2>
-                    <p className="text-xs text-neutral-500">
-                        {t.subN(
-                            preview.enrichments.length,
-                            preview.conflicts.length,
-                            preview.creates.length,
-                        )}
-                    </p>
-                </div>
+        <div className="flex flex-col gap-3 py-1">
+            <div className="flex flex-col gap-0.5">
+                <h2 className="text-base font-bold text-neutral-900">
+                    {t.heading}
+                </h2>
+                <p className="text-xs text-neutral-500">
+                    {t.subN(
+                        preview.enrichments.length,
+                        preview.conflicts.length,
+                        preview.creates.length,
+                    )}
+                </p>
             </div>
 
             {preview.enrichments.length > 0 && (
@@ -649,7 +643,6 @@ function PreviewBody({
                 <PreviewSection
                     title={t.conflictsHeading}
                     count={preview.conflicts.length}
-                    tone="warn"
                 >
                     <ul className="flex flex-col gap-2 w-full max-w-none">
                         {preview.conflicts.map((c) => (
@@ -690,21 +683,15 @@ function PreviewBody({
 function PreviewSection({
     title,
     count,
-    tone = 'default',
     children,
 }: {
     title: string;
     count: number;
-    tone?: 'default' | 'warn';
     children: React.ReactNode;
 }) {
-    const colorClass =
-        tone === 'warn' ? 'text-orange-700' : 'text-neutral-500';
     return (
-        <section className="flex flex-col gap-2">
-            <p
-                className={`text-xs font-bold uppercase tracking-wider ${colorClass}`}
-            >
+        <section className="flex flex-col gap-1.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
                 {title} · {count}
             </p>
             {children}
