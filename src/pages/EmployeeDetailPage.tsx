@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useState,
+    type FormEvent,
+    type ReactNode,
+} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Tabs,
@@ -7,14 +13,14 @@ import {
     Alert,
     Banner,
     Icon,
+    Input,
     Menu,
     type Color,
 } from '@economic/taco';
-import { useEmployees } from '../store/employeesStore';
+import { updateEmployee, useEmployees } from '../store/employeesStore';
 import type { Employee, EmployeeStatus } from '../data/mockEmployees';
 import { da } from '../data/danishCopy';
 import { useVariantPaths } from '../paths';
-import { EmployeeEditDialogV2 } from '../features/employee-onboarding/EmployeeEditDialogV2';
 
 const STATUS_COLOR: Record<EmployeeStatus, Color> = {
     pending: 'orange',
@@ -108,235 +114,567 @@ function ReadOnlyField({
     );
 }
 
-// --- Section card --------------------------------------------------------
+// --- Editable field (Input variant) ------------------------------------
+
+function EditableField({
+    name,
+    label,
+    defaultValue,
+    required,
+    highlight,
+}: {
+    name?: string;
+    label: string;
+    defaultValue?: string;
+    required?: boolean;
+    highlight?: boolean;
+}) {
+    return (
+        <div className="flex flex-col gap-1 min-w-0">
+            <label className="text-xs font-bold text-neutral-900">
+                {label}
+                {required && '*'}
+            </label>
+            <Input
+                name={name}
+                defaultValue={defaultValue ?? ''}
+                className={highlight ? 'bg-yellow-100' : undefined}
+            />
+        </div>
+    );
+}
+
+// --- Section card with inline editing -----------------------------------
+//
+// Each card owns its own edit state. The body is rendered via a render-prop
+// so the section can switch between read-only and editable variants of the
+// same field list. Save is performed by reading the form data and applying
+// it through the provided `onSave` callback — sections without persistable
+// data can omit `onSave` and Gem just exits edit mode.
 
 function SectionCard({
     id,
     title,
-    onEdit,
-    children,
+    renderBody,
+    onSave,
     footer,
 }: {
     id: string;
     title: string;
-    onEdit: () => void;
-    children: React.ReactNode;
-    footer?: React.ReactNode;
+    renderBody: (isEditing: boolean) => ReactNode;
+    onSave?: (formData: FormData) => void;
+    footer?: ReactNode;
 }) {
+    const [isEditing, setIsEditing] = useState(false);
+
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        onSave?.(data);
+        setIsEditing(false);
+    };
+
+    const body = (
+        <div className="px-6 pb-6 flex flex-col gap-4">
+            <dl className="grid grid-cols-3 gap-x-8 gap-y-5">
+                {renderBody(isEditing)}
+            </dl>
+            {footer}
+        </div>
+    );
+
+    const header = (
+        <header className="px-6 py-4 flex items-center justify-between">
+            <h2 className="text-base font-bold text-neutral-900">{title}</h2>
+            {isEditing ? (
+                <div className="flex items-center gap-2">
+                    <Button
+                        appearance="default"
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                    >
+                        {da.actions.cancel}
+                    </Button>
+                    <Button appearance="primary" type="submit">
+                        {da.editDialog.actions.save}
+                    </Button>
+                </div>
+            ) : (
+                <Button
+                    appearance="default"
+                    onClick={() => setIsEditing(true)}
+                >
+                    {da.detailPage.edit}
+                </Button>
+            )}
+        </header>
+    );
+
     return (
         <section
             id={id}
             className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
         >
-            <header className="px-6 py-4 flex items-center justify-between">
-                <h2 className="text-base font-bold text-neutral-900">
-                    {title}
-                </h2>
-                <Button appearance="default" onClick={onEdit}>
-                    {da.detailPage.edit}
-                </Button>
-            </header>
-            <div className="px-6 pb-6 flex flex-col gap-4">
-                <dl className="grid grid-cols-3 gap-x-8 gap-y-5">
-                    {children}
-                </dl>
-                {footer}
-            </div>
+            {isEditing ? (
+                <form onSubmit={handleSubmit}>
+                    {header}
+                    {body}
+                </form>
+            ) : (
+                <>
+                    {header}
+                    {body}
+                </>
+            )}
         </section>
     );
 }
 
 // --- Section content ----------------------------------------------------
+//
+// Each section renders either ReadOnlyField (default) or EditableField
+// (when the parent SectionCard is in edit mode). Field rendering is unified
+// inside the renderField helper below.
 
-function PersonalInfoSection({
-    employee,
-    onEdit,
-}: {
-    employee: Employee;
-    onEdit: () => void;
-}) {
+function renderField(
+    isEditing: boolean,
+    args: {
+        name?: string;
+        label: string;
+        value: string | undefined;
+        required?: boolean;
+        highlight?: boolean;
+    },
+) {
+    if (isEditing) {
+        return (
+            <EditableField
+                name={args.name}
+                label={args.label}
+                defaultValue={args.value}
+                required={args.required}
+                highlight={args.highlight}
+            />
+        );
+    }
+    return (
+        <ReadOnlyField
+            label={args.label}
+            value={args.value}
+            required={args.required}
+            highlight={args.highlight}
+        />
+    );
+}
+
+function PersonalInfoSection({ employee }: { employee: Employee }) {
     const f = da.editDialog.fields;
     const enriched = employee.enriched ?? false;
     return (
         <SectionCard
             id="personoplysninger"
             title={da.detailPage.sections.personalInfo}
-            onEdit={onEdit}
-        >
-            {/* Column 1 */}
-            <ReadOnlyField label={f.cpr} value={employee.cpr} required />
-            <ReadOnlyField
-                label={da.editDialog.fields.country}
-                value={da.editDialog.defaults.country}
-                required
-            />
-            <ReadOnlyField
-                label={f.employeeGroup}
-                value={da.editDialog.defaults.employeeGroup}
-            />
+            onSave={(formData) => {
+                const patch: Partial<Employee> = {};
+                const set = (k: keyof Employee, v: FormDataEntryValue | null) => {
+                    if (typeof v === 'string') {
+                        (patch as Record<string, unknown>)[String(k)] = v;
+                    }
+                };
+                set('cpr', formData.get('cpr'));
+                set('name', formData.get('name'));
+                set('hireDate', formData.get('hireDate'));
+                set('employeeNumber', formData.get('employeeNumber'));
+                set('email', formData.get('email'));
+                set('phone', formData.get('phone'));
+                set('address', formData.get('address'));
+                set('postCode', formData.get('postCode'));
+                set('city', formData.get('city'));
+                updateEmployee(employee.id, patch);
+            }}
+            renderBody={(isEditing) => (
+                <>
+                    {/* Column 1 */}
+                    {renderField(isEditing, {
+                        name: 'cpr',
+                        label: f.cpr,
+                        value: employee.cpr,
+                        required: true,
+                    })}
+                    {renderField(isEditing, {
+                        name: 'country',
+                        label: f.country,
+                        value: da.editDialog.defaults.country,
+                        required: true,
+                    })}
+                    {renderField(isEditing, {
+                        name: 'employeeGroup',
+                        label: f.employeeGroup,
+                        value: da.editDialog.defaults.employeeGroup,
+                    })}
 
-            <ReadOnlyField label={f.fullName} value={employee.name} required />
-            <ReadOnlyField
-                label={da.detailPage.fieldLabels.tin}
-                value={undefined}
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <ReadOnlyField
-                    label={f.employmentDate}
-                    value={employee.hireDate}
-                    required
-                    highlight={enriched}
-                />
-                <ReadOnlyField
-                    label={f.employeeNumber}
-                    value={employee.employeeNumber}
-                    required
-                    highlight={enriched}
-                />
-            </div>
+                    {renderField(isEditing, {
+                        name: 'name',
+                        label: f.fullName,
+                        value: employee.name,
+                        required: true,
+                    })}
+                    {renderField(isEditing, {
+                        name: 'tin',
+                        label: da.detailPage.fieldLabels.tin,
+                        value: undefined,
+                    })}
+                    <div className="grid grid-cols-2 gap-4">
+                        {renderField(isEditing, {
+                            name: 'hireDate',
+                            label: f.employmentDate,
+                            value: employee.hireDate,
+                            required: true,
+                            highlight: enriched,
+                        })}
+                        {renderField(isEditing, {
+                            name: 'employeeNumber',
+                            label: f.employeeNumber,
+                            value: employee.employeeNumber,
+                            required: true,
+                            highlight: enriched,
+                        })}
+                    </div>
 
-            <ReadOnlyField label={f.co} value={undefined} />
-            <ReadOnlyField
-                label={f.email}
-                value={employee.email}
-                highlight={enriched && !!employee.email}
-            />
-            <div />
+                    {renderField(isEditing, {
+                        name: 'co',
+                        label: f.co,
+                        value: undefined,
+                    })}
+                    {renderField(isEditing, {
+                        name: 'email',
+                        label: f.email,
+                        value: employee.email,
+                        highlight: enriched && !!employee.email,
+                    })}
+                    <div />
 
-            <div className="grid grid-cols-[110px_1fr] gap-3">
-                <ReadOnlyField
-                    label={f.postCode}
-                    value={employee.postCode}
-                    required
-                    highlight={enriched && !!employee.postCode}
-                />
-                <ReadOnlyField
-                    label={f.city}
-                    value={employee.city}
-                    required
-                    highlight={enriched && !!employee.city}
-                />
-            </div>
-            <ReadOnlyField
-                label={f.phone}
-                value={employee.phone}
-                highlight={enriched && !!employee.phone}
-            />
-            <div />
+                    <div className="grid grid-cols-[110px_1fr] gap-3">
+                        {renderField(isEditing, {
+                            name: 'postCode',
+                            label: f.postCode,
+                            value: employee.postCode,
+                            required: true,
+                            highlight: enriched && !!employee.postCode,
+                        })}
+                        {renderField(isEditing, {
+                            name: 'city',
+                            label: f.city,
+                            value: employee.city,
+                            required: true,
+                            highlight: enriched && !!employee.city,
+                        })}
+                    </div>
+                    {renderField(isEditing, {
+                        name: 'phone',
+                        label: f.phone,
+                        value: employee.phone,
+                        highlight: enriched && !!employee.phone,
+                    })}
+                    <div />
 
-            <ReadOnlyField
-                label={f.address}
-                value={employee.address}
-                required
-                highlight={enriched && !!employee.address}
-            />
-        </SectionCard>
+                    {renderField(isEditing, {
+                        name: 'address',
+                        label: f.address,
+                        value: employee.address,
+                        required: true,
+                        highlight: enriched && !!employee.address,
+                    })}
+                </>
+            )}
+        />
     );
 }
 
-function PaymentSection({
-    employee,
-    onEdit,
-}: {
-    employee: Employee;
-    onEdit: () => void;
-}) {
+function PaymentSection({ employee }: { employee: Employee }) {
     const t = da.detailPage.payment;
     return (
         <section
             id="lonudbetaling"
             className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
         >
-            <header className="px-6 py-4 flex items-center justify-between">
-                <h2 className="text-base font-bold text-neutral-900">
-                    {da.detailPage.sections.payment}
-                </h2>
-                <Button appearance="default" onClick={onEdit}>
-                    {da.detailPage.edit}
-                </Button>
-            </header>
-            <div className="px-6 pb-6">
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
-                    <ReadOnlyField label={t.bankReg} value={undefined} />
-                    <ReadOnlyField label={t.bankAccount} value={undefined} />
-                    <ReadOnlyField
-                        label={t.payoutMethod}
-                        value={t.payoutMethodValue}
-                    />
-                    <ReadOnlyField
-                        label={t.payFrequency}
-                        value={employee.payPeriod || t.payFrequencyValue}
-                    />
-                    <ReadOnlyField label={t.iban} value={undefined} />
-                    <ReadOnlyField label={t.bicSwift} value={undefined} />
-                </dl>
-            </div>
+            <PaymentBody employee={employee} t={t} />
         </section>
     );
 }
 
-function TaxCardSection({ onEdit }: { onEdit: () => void }) {
+function PaymentBody({
+    employee,
+    t,
+}: {
+    employee: Employee;
+    t: typeof da.detailPage.payment;
+}) {
+    const [isEditing, setIsEditing] = useState(false);
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsEditing(false);
+    };
+
+    const body = (
+        <div className="px-6 pb-6">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
+                {renderField(isEditing, {
+                    name: 'bankReg',
+                    label: t.bankReg,
+                    value: undefined,
+                })}
+                {renderField(isEditing, {
+                    name: 'bankAccount',
+                    label: t.bankAccount,
+                    value: undefined,
+                })}
+                {renderField(isEditing, {
+                    name: 'payoutMethod',
+                    label: t.payoutMethod,
+                    value: t.payoutMethodValue,
+                })}
+                {renderField(isEditing, {
+                    name: 'payFrequency',
+                    label: t.payFrequency,
+                    value: employee.payPeriod || t.payFrequencyValue,
+                })}
+                {renderField(isEditing, {
+                    name: 'iban',
+                    label: t.iban,
+                    value: undefined,
+                })}
+                {renderField(isEditing, {
+                    name: 'bicSwift',
+                    label: t.bicSwift,
+                    value: undefined,
+                })}
+            </dl>
+        </div>
+    );
+
+    const header = (
+        <header className="px-6 py-4 flex items-center justify-between">
+            <h2 className="text-base font-bold text-neutral-900">
+                {da.detailPage.sections.payment}
+            </h2>
+            {isEditing ? (
+                <div className="flex items-center gap-2">
+                    <Button
+                        appearance="default"
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                    >
+                        {da.actions.cancel}
+                    </Button>
+                    <Button appearance="primary" type="submit">
+                        {da.editDialog.actions.save}
+                    </Button>
+                </div>
+            ) : (
+                <Button
+                    appearance="default"
+                    onClick={() => setIsEditing(true)}
+                >
+                    {da.detailPage.edit}
+                </Button>
+            )}
+        </header>
+    );
+
+    return isEditing ? (
+        <form onSubmit={handleSubmit}>
+            {header}
+            {body}
+        </form>
+    ) : (
+        <>
+            {header}
+            {body}
+        </>
+    );
+}
+
+function TaxCardSection() {
     const t = da.detailPage.taxCard;
+    const [isEditing, setIsEditing] = useState(false);
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsEditing(false);
+    };
+
+    const body = (
+        <div className="px-6 pb-6 flex flex-col gap-4">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
+                {renderField(isEditing, {
+                    name: 'cardType',
+                    label: t.cardType,
+                    value: undefined,
+                })}
+                {renderField(isEditing, {
+                    name: 'aTaxPercent',
+                    label: t.aTaxPercent,
+                    value: undefined,
+                })}
+                {renderField(isEditing, {
+                    name: 'amContribution',
+                    label: t.amContributionPercent,
+                    value: '8 %',
+                })}
+                {renderField(isEditing, {
+                    name: 'taxFreeAllowance',
+                    label: t.taxFreeAllowance,
+                    value: undefined,
+                })}
+                {renderField(isEditing, {
+                    name: 'taxDebt',
+                    label: t.taxDebt,
+                    value: undefined,
+                })}
+            </dl>
+            <Banner state="warning">
+                <div className="flex flex-col gap-1">
+                    <strong>{t.missingTitle}</strong>
+                    <p className="mb-0">{t.missingBody}</p>
+                </div>
+            </Banner>
+        </div>
+    );
+
+    const header = (
+        <header className="px-6 py-4 flex items-center justify-between">
+            <h2 className="text-base font-bold text-neutral-900">
+                {da.detailPage.sections.taxCard}
+            </h2>
+            {isEditing ? (
+                <div className="flex items-center gap-2">
+                    <Button
+                        appearance="default"
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                    >
+                        {da.actions.cancel}
+                    </Button>
+                    <Button appearance="primary" type="submit">
+                        {da.editDialog.actions.save}
+                    </Button>
+                </div>
+            ) : (
+                <Button
+                    appearance="default"
+                    onClick={() => setIsEditing(true)}
+                >
+                    {da.detailPage.edit}
+                </Button>
+            )}
+        </header>
+    );
+
     return (
         <section
             id="skattekort"
             className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
         >
-            <header className="px-6 py-4 flex items-center justify-between">
-                <h2 className="text-base font-bold text-neutral-900">
-                    {da.detailPage.sections.taxCard}
-                </h2>
-                <Button appearance="default" onClick={onEdit}>
-                    {da.detailPage.edit}
-                </Button>
-            </header>
-            <div className="px-6 pb-6 flex flex-col gap-4">
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
-                    <ReadOnlyField label={t.cardType} value={undefined} />
-                    <ReadOnlyField label={t.aTaxPercent} value={undefined} />
-                    <ReadOnlyField label={t.amContributionPercent} value="8 %" />
-                    <ReadOnlyField label={t.taxFreeAllowance} value={undefined} />
-                    <ReadOnlyField label={t.taxDebt} value={undefined} />
-                </dl>
-                <Banner state="warning">
-                    <div className="flex flex-col gap-1">
-                        <strong>{t.missingTitle}</strong>
-                        <p className="mb-0">{t.missingBody}</p>
-                    </div>
-                </Banner>
-            </div>
+            {isEditing ? (
+                <form onSubmit={handleSubmit}>
+                    {header}
+                    {body}
+                </form>
+            ) : (
+                <>
+                    {header}
+                    {body}
+                </>
+            )}
         </section>
     );
 }
 
-function HolidaySection({
-    onEdit,
-}: {
-    onEdit: () => void;
-}) {
+function HolidaySection() {
     const t = da.detailPage.holiday;
+    const [isEditing, setIsEditing] = useState(false);
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsEditing(false);
+    };
+
+    const body = (
+        <div className="px-6 pb-6">
+            <dl className="grid grid-cols-3 gap-x-8 gap-y-5">
+                {renderField(isEditing, {
+                    name: 'scheme',
+                    label: t.scheme,
+                    value: t.schemeValue,
+                })}
+                {renderField(isEditing, {
+                    name: 'statutory',
+                    label: t.statutory,
+                    value: '25 dage',
+                })}
+                {renderField(isEditing, {
+                    name: 'extra',
+                    label: t.extra,
+                    value: '5 dage',
+                })}
+                {renderField(isEditing, {
+                    name: 'transferred',
+                    label: t.transferred,
+                    value: undefined,
+                })}
+                {renderField(isEditing, {
+                    name: 'vacationFund',
+                    label: t.vacationFund,
+                    value: 'FerieKonto',
+                })}
+            </dl>
+        </div>
+    );
+
+    const header = (
+        <header className="px-6 py-4 flex items-center justify-between">
+            <h2 className="text-base font-bold text-neutral-900">
+                {da.detailPage.sections.holiday}
+            </h2>
+            {isEditing ? (
+                <div className="flex items-center gap-2">
+                    <Button
+                        appearance="default"
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                    >
+                        {da.actions.cancel}
+                    </Button>
+                    <Button appearance="primary" type="submit">
+                        {da.editDialog.actions.save}
+                    </Button>
+                </div>
+            ) : (
+                <Button
+                    appearance="default"
+                    onClick={() => setIsEditing(true)}
+                >
+                    {da.detailPage.edit}
+                </Button>
+            )}
+        </header>
+    );
+
     return (
         <section
             id="ferie"
             className="scroll-mt-24 rounded-lg border border-grey-300 bg-white"
         >
-            <header className="px-6 py-4 flex items-center justify-between">
-                <h2 className="text-base font-bold text-neutral-900">
-                    {da.detailPage.sections.holiday}
-                </h2>
-                <Button appearance="default" onClick={onEdit}>
-                    {da.detailPage.edit}
-                </Button>
-            </header>
-            <div className="px-6 pb-6">
-                <dl className="grid grid-cols-3 gap-x-8 gap-y-5">
-                    <ReadOnlyField label={t.scheme} value={t.schemeValue} />
-                    <ReadOnlyField label={t.statutory} value="25 dage" />
-                    <ReadOnlyField label={t.extra} value="5 dage" />
-                    <ReadOnlyField label={t.transferred} value={undefined} />
-                    <ReadOnlyField label={t.vacationFund} value="FerieKonto" />
-                </dl>
-            </div>
+            {isEditing ? (
+                <form onSubmit={handleSubmit}>
+                    {header}
+                    {body}
+                </form>
+            ) : (
+                <>
+                    {header}
+                    {body}
+                </>
+            )}
         </section>
     );
 }
@@ -612,13 +950,7 @@ const SECTIONS: SectionMeta[] = [
     { id: 'ferie', label: da.detailPage.sections.holiday },
 ];
 
-function OverviewTab({
-    employee,
-    onEdit,
-}: {
-    employee: Employee;
-    onEdit: () => void;
-}) {
+function OverviewTab({ employee }: { employee: Employee }) {
     const [activeId, setActiveId] = useState(SECTIONS[0].id);
 
     useEffect(() => {
@@ -656,12 +988,12 @@ function OverviewTab({
     return (
         <div className="flex gap-8 pt-6 items-start">
             <div className="flex-1 min-w-0 flex flex-col gap-6">
-                <PersonalInfoSection employee={employee} onEdit={onEdit} />
+                <PersonalInfoSection employee={employee} />
                 <div className="grid grid-cols-2 gap-6">
-                    <PaymentSection employee={employee} onEdit={onEdit} />
-                    <TaxCardSection onEdit={onEdit} />
+                    <PaymentSection employee={employee} />
+                    <TaxCardSection />
                 </div>
-                <HolidaySection onEdit={onEdit} />
+                <HolidaySection />
             </div>
             <aside className="w-44 shrink-0">
                 <AnchorNav
@@ -683,7 +1015,6 @@ export function EmployeeDetailPage() {
     const employees = useEmployees();
     const employee = employees.find((e) => e.id === id);
     const backToList = `${variantPaths.employees}?state=processed`;
-    const [editing, setEditing] = useState(false);
 
     const stats = useMemo(() => {
         if (!employee) return null;
@@ -733,11 +1064,6 @@ export function EmployeeDetailPage() {
                     menu={(props) => (
                         <Menu {...props}>
                             <Menu.Content>
-                                <Menu.Item
-                                    onClick={() => setEditing(true)}
-                                >
-                                    {da.detailPage.edit}
-                                </Menu.Item>
                                 <Menu.Item disabled>
                                     {da.actions.morePlaceholder}
                                 </Menu.Item>
@@ -778,10 +1104,7 @@ export function EmployeeDetailPage() {
                 </Tabs.List>
 
                 <Tabs.Content id="overview">
-                    <OverviewTab
-                        employee={employee}
-                        onEdit={() => setEditing(true)}
-                    />
+                    <OverviewTab employee={employee} />
                 </Tabs.Content>
                 <Tabs.Content id="balances">
                     <BalancesTab />
@@ -793,11 +1116,6 @@ export function EmployeeDetailPage() {
                     <PayHistoryTab />
                 </Tabs.Content>
             </Tabs>
-
-            <EmployeeEditDialogV2
-                employee={editing ? employee : null}
-                onClose={() => setEditing(false)}
-            />
         </div>
     );
 }
