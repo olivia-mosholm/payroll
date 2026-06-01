@@ -619,81 +619,24 @@ function PreviewBody({
         choice: ConflictResolution,
     ) => void;
 }) {
-    const t = da.importDialog.preview;
     return (
-        <div className="flex flex-col gap-4 py-1">
-            {preview.enrichments.length > 0 && (
-                <PreviewSection
-                    title={t.updatesHeading}
-                    count={preview.enrichments.length}
-                >
-                    <ul className="flex flex-col gap-2 w-full max-w-none">
-                        {preview.enrichments.map((e) => (
-                            <EnrichmentCard
-                                key={e.employee.id}
-                                enrichment={e}
-                            />
-                        ))}
-                    </ul>
-                </PreviewSection>
-            )}
-
-            {preview.conflicts.length > 0 && (
-                <PreviewSection
-                    title={t.conflictsHeading}
-                    count={preview.conflicts.length}
-                >
-                    <ul className="flex flex-col gap-2 w-full max-w-none">
-                        {preview.conflicts.map((c) => (
-                            <ConflictCard
-                                key={c.employee.id}
-                                conflict={c}
-                                resolutions={
-                                    resolutions[c.employee.id] ?? {}
-                                }
-                                onResolve={(field, choice) =>
-                                    onResolve(c.employee.id, field, choice)
-                                }
-                            />
-                        ))}
-                    </ul>
-                </PreviewSection>
-            )}
-
-            {preview.creates.length > 0 && (
-                <PreviewSection
-                    title={t.createsHeading}
-                    count={preview.creates.length}
-                >
-                    <ul className="flex flex-col gap-2 w-full max-w-none">
-                        {preview.creates.map((c) => (
-                            <NewDraftCard
-                                key={c.employee.id}
-                                creation={c}
-                            />
-                        ))}
-                    </ul>
-                </PreviewSection>
-            )}
-        </div>
-    );
-}
-
-function PreviewSection({
-    title,
-    count,
-    children,
-}: {
-    title: string;
-    count: number;
-    children: React.ReactNode;
-}) {
-    return (
-        <section className="flex flex-col gap-2">
-            <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                {title} · {count}
-            </p>
-            {children}
-        </section>
+        <ul className="flex flex-col gap-2 w-full max-w-none py-1">
+            {preview.enrichments.map((e) => (
+                <EnrichmentCard key={e.employee.id} enrichment={e} />
+            ))}
+            {preview.conflicts.map((c) => (
+                <ConflictCard
+                    key={c.employee.id}
+                    conflict={c}
+                    resolutions={resolutions[c.employee.id] ?? {}}
+                    onResolve={(field, choice) =>
+                        onResolve(c.employee.id, field, choice)
+                    }
+                />
+            ))}
+            {preview.creates.map((c) => (
+                <NewDraftCard key={c.employee.id} creation={c} />
+            ))}
+        </ul>
     );
 }
