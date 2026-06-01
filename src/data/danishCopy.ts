@@ -27,7 +27,7 @@ export const da = {
         body: 'Træk lønsedler, regneark eller billeder ind i dette område for automatisk at oprette medarbejderudkast.',
     },
     dropzone: {
-        title: 'Træk og slip her',
+        title: 'Træk filerne direkte hertil',
         separator: 'eller',
         browse: 'Vælg filer',
     },

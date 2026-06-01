@@ -103,7 +103,7 @@ export const danishToEnglish: Record<string, string> = {
         'Drag payslips, spreadsheets or images into this area to automatically create employee drafts.',
 
     // --- Drop zone -------------------------------------------------------
-    'Træk og slip her': 'Drag and drop here',
+    'Træk filerne direkte hertil': 'Drag the files directly here',
     eller: 'or',
     'Vælg filer': 'Choose files',
 

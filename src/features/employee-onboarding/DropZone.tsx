@@ -32,7 +32,7 @@ export function DropZone({ onFiles }: Props) {
             className={`flex flex-col items-center justify-center py-6 rounded-[10px] border border-dashed transition-colors ${
                 isOver
                     ? 'border-blue-500 bg-blue-100'
-                    : 'border-[#75A0F5] bg-[rgba(222,235,255,0.4)]'
+                    : 'border-[#75A0F5] bg-transparent'
             }`}
             role="button"
             tabIndex={0}
@@ -41,7 +41,7 @@ export function DropZone({ onFiles }: Props) {
             <p className="font-bold text-base leading-tight text-neutral-900 mb-0">
                 {da.dropzone.title}
             </p>
-            <p className="text-sm leading-tight text-neutral-900 mt-1 mb-1">
+            <p className="text-sm leading-tight text-neutral-900 mt-3 mb-3">
                 {da.dropzone.separator}
             </p>
             <Button appearance="ghost" onClick={handleBrowseClick}>
