@@ -739,15 +739,17 @@ export function EmployeeEditDialogV2({ employee, onClose }: Props) {
                 </Tabs>
 
                 <Dialog.Footer>
-                    <Button appearance="default" onClick={onClose}>
-                        {t.actions.cancel}
-                    </Button>
-                    <Button appearance="primary" onClick={onClose}>
-                        {t.actions.save}
-                    </Button>
-                    <Button appearance="default" onClick={onClose}>
-                        {t.actions.saveNext}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button appearance="default" onClick={onClose}>
+                            {t.actions.cancel}
+                        </Button>
+                        <Button appearance="primary" onClick={onClose}>
+                            {t.actions.save}
+                        </Button>
+                        <Button appearance="default" onClick={onClose}>
+                            {t.actions.saveNext}
+                        </Button>
+                    </div>
                 </Dialog.Footer>
             </Dialog.Content>
         </Dialog>

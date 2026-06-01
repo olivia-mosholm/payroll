@@ -206,6 +206,20 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                         >
                             {da.actions.addEmployee}
                         </Button>
+                        <Button
+                            appearance="default"
+                            menu={(props) => (
+                                <Menu {...props}>
+                                    <Menu.Content>
+                                        <Menu.Item disabled>
+                                            {da.actions.morePlaceholder}
+                                        </Menu.Item>
+                                    </Menu.Content>
+                                </Menu>
+                            )}
+                        >
+                            {da.actions.more}
+                        </Button>
                     </div>
                     <EmployeeDraftsTable
                         employees={visibleEmployees}
