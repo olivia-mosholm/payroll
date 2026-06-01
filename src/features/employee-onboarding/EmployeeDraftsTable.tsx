@@ -1,4 +1,4 @@
-import { Table3, Badge, type Color } from '@economic/taco';
+import { Table3, Badge, IconButton, type Color } from '@economic/taco';
 import type { Employee, EmployeeStatus } from '../../data/mockEmployees';
 import { da } from '../../data/danishCopy';
 
@@ -85,6 +85,29 @@ export function EmployeeDraftsTable({ employees, onRowClick }: Props) {
                 align="center"
                 defaultWidth={110}
                 renderer={({ row }) => <StatusBadge status={row.status} />}
+            />
+            <Table3.Column<Employee>
+                accessor="id"
+                header=""
+                align="right"
+                defaultWidth={80}
+                renderer={() => (
+                    <span
+                        className="inline-flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <IconButton
+                            icon="edit"
+                            appearance="discrete"
+                            aria-label={da.detailPage.edit}
+                        />
+                        <IconButton
+                            icon="ellipsis-vertical"
+                            appearance="discrete"
+                            aria-label={da.actions.more}
+                        />
+                    </span>
+                )}
             />
         </Table3>
     );
