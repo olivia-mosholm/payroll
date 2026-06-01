@@ -4372,6 +4372,10 @@ table[data-taco='table3'] td[data-taco='save-status'] [data-taco='spinner'] svg 
   padding-top: 1.75rem;
   padding-bottom: 1.75rem;
 }
+.py-px {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
 .\!pb-0 {
   padding-bottom: 0px !important;
 }
@@ -5119,10 +5123,6 @@ html, body, #root {
 }
 .hover\:cursor-pointer:hover {
   cursor: pointer;
-}
-.hover\:border-grey-500:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(172 172 172 / var(--tw-border-opacity, 1));
 }
 .hover\:border-grey-900:hover {
   --tw-border-opacity: 1;

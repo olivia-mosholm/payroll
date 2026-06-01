@@ -305,36 +305,30 @@ function ConflictFieldGroup({
     const t = da.importDialog.preview;
     const groupName = `conflict-${employeeId}-${String(field.key)}`;
     return (
-        <div className="flex flex-col gap-2">
-            <p className="text-xs text-neutral-700">
+        <fieldset className="flex flex-col gap-2">
+            <legend className="text-xs text-neutral-700 mb-1">
                 <span className="font-bold">{field.label}</span>{' '}
                 {t.conflictExplanation(field.label).replace(`${field.label} `, '')}
-            </p>
-            <fieldset
-                role="radiogroup"
-                aria-label={field.label}
-                className="flex flex-col gap-2"
-            >
-                <ConflictRadioOption
-                    name={groupName}
-                    value="keep"
-                    label={t.keepExisting}
-                    displayValue={field.existing}
-                    tone="muted"
-                    checked={choice === 'keep'}
-                    onChange={() => onResolve('keep')}
-                />
-                <ConflictRadioOption
-                    name={groupName}
-                    value="override"
-                    label={t.overrideWithNew}
-                    displayValue={field.incoming}
-                    tone="new"
-                    checked={choice === 'override'}
-                    onChange={() => onResolve('override')}
-                />
-            </fieldset>
-        </div>
+            </legend>
+            <ConflictRadioOption
+                name={groupName}
+                value="keep"
+                label={t.keepExisting}
+                displayValue={field.existing}
+                tone="muted"
+                checked={choice === 'keep'}
+                onChange={() => onResolve('keep')}
+            />
+            <ConflictRadioOption
+                name={groupName}
+                value="override"
+                label={t.overrideWithNew}
+                displayValue={field.incoming}
+                tone="new"
+                checked={choice === 'override'}
+                onChange={() => onResolve('override')}
+            />
+        </fieldset>
     );
 }
 
@@ -355,17 +349,12 @@ function ConflictRadioOption({
     checked: boolean;
     onChange: () => void;
 }) {
-    const containerClass = checked
-        ? 'border-blue-500 bg-blue-50/50'
-        : 'border-grey-300 hover:border-grey-500';
     const chipClass =
         tone === 'new'
             ? 'bg-yellow-100 text-neutral-900'
-            : 'bg-grey-100 text-neutral-700';
+            : 'text-neutral-700';
     return (
-        <label
-            className={`flex items-center gap-3 rounded-md border px-3 py-2.5 cursor-pointer transition-colors ${containerClass}`}
-        >
+        <label className="flex items-center gap-3 cursor-pointer">
             <input
                 type="radio"
                 name={name}
@@ -377,9 +366,7 @@ function ConflictRadioOption({
             <span
                 aria-hidden="true"
                 className={`inline-flex items-center justify-center w-4 h-4 rounded-full border-2 shrink-0 ${
-                    checked
-                        ? 'border-blue-500'
-                        : 'border-grey-500'
+                    checked ? 'border-blue-500' : 'border-grey-500'
                 }`}
             >
                 {checked && (
@@ -394,7 +381,9 @@ function ConflictRadioOption({
                 {label}
             </span>
             <span
-                className={`text-xs rounded px-2 py-0.5 ${chipClass} truncate min-w-0`}
+                className={`text-xs rounded ${
+                    tone === 'new' ? 'px-1.5 py-px' : ''
+                } ${chipClass} truncate min-w-0`}
                 title={displayValue}
             >
                 {displayValue}
