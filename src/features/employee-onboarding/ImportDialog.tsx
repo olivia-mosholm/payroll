@@ -624,23 +624,8 @@ function PreviewBody({
     ) => void;
 }) {
     const t = da.importDialog.preview;
-    const summary = t.subSummary(
-        preview.enrichments.length,
-        preview.conflicts.length,
-        preview.creates.length,
-    );
     return (
         <div className="flex flex-col gap-4 py-1">
-            <p className="text-sm text-neutral-900">
-                <strong className="font-bold">{t.heading}</strong>
-                {summary && (
-                    <>
-                        {' '}
-                        <span className="text-neutral-500">· {summary}</span>
-                    </>
-                )}
-            </p>
-
             {preview.enrichments.length > 0 && (
                 <PreviewSection
                     title={t.updatesHeading}
