@@ -108,7 +108,7 @@ export const danishToEnglish: Record<string, string> = {
     'Vælg filer': 'Choose files',
 
     // --- Actions ---------------------------------------------------------
-    'Behandl dokumenter': 'Process documents',
+    'Indlæs filer': 'Load files',
     'Ny medarbejder': 'New employee',
     'Opret manuelt': 'Create manually',
     'Hurtig oprettelse': 'Quick creation',
@@ -350,16 +350,16 @@ export const dynamicPatterns: RegexPattern[] = [
             `${m[1]} fil klar til behandling. Du kan fjerne enkelte filer før du starter.`,
     },
     {
-        da: /^Behandl (\d+) filer$/,
-        en: /^Process (\d+) files$/,
-        toEn: (m) => `Process ${m[1]} files`,
-        toDa: (m) => `Behandl ${m[1]} filer`,
+        da: /^Indlæs (\d+) filer$/,
+        en: /^Load (\d+) files$/,
+        toEn: (m) => `Load ${m[1]} files`,
+        toDa: (m) => `Indlæs ${m[1]} filer`,
     },
     {
-        da: /^Behandl (\d+) fil$/,
-        en: /^Process (\d+) file$/,
-        toEn: (m) => `Process ${m[1]} file`,
-        toDa: (m) => `Behandl ${m[1]} fil`,
+        da: /^Indlæs (\d+) fil$/,
+        en: /^Load (\d+) file$/,
+        toEn: (m) => `Load ${m[1]} file`,
+        toDa: (m) => `Indlæs ${m[1]} fil`,
     },
     {
         da: /^(\d+) nye felter$/,

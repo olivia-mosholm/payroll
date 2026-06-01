@@ -66,7 +66,7 @@ export const da = {
         backToLanding: '← Tilbage til prototyper',
     },
     actions: {
-        process: 'Behandl dokumenter',
+        process: 'Indlæs filer',
         addEmployee: 'Ny medarbejder',
         createManually: 'Opret manuelt',
         quickCreate: 'Hurtig oprettelse',
@@ -117,7 +117,7 @@ export const da = {
             'Vi læser hver fil, finder navne, CPR og lønforhold, og opretter en kladde pr. medarbejder. Du gennemgår dem inden de bliver aktive.',
         addMore: 'Tilføj flere...',
         processN: (n: number) =>
-            `Behandl ${n} ${n === 1 ? 'fil' : 'filer'}`,
+            `Indlæs ${n} ${n === 1 ? 'fil' : 'filer'}`,
         analyzing: 'Analyserer dine filer og matcher mod eksisterende medarbejdere...',
         preview: {
             heading: 'AI matchede dine filer',
