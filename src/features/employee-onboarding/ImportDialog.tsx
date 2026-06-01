@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Dialog, Button, Spinner, Badge, Icon } from '@economic/taco';
+import {
+    Dialog,
+    Button,
+    Spinner,
+    Badge,
+    Icon,
+    IconButton,
+} from '@economic/taco';
 import { DropZone } from './DropZone';
 import {
     FileRow,
@@ -182,7 +189,7 @@ function RowHeader({
     metaParts: string[];
 }) {
     return (
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
             <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-grey-100 text-neutral-700 shrink-0">
                 <Icon name="document" />
             </span>
@@ -198,7 +205,13 @@ function RowHeader({
     );
 }
 
-function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
+function EnrichmentCard({
+    enrichment,
+    onRemove,
+}: {
+    enrichment: Enrichment;
+    onRemove: () => void;
+}) {
     const t = da.importDialog.preview;
     return (
         <li className="flex items-center gap-3 w-full px-3 py-2.5 bg-white border border-grey-300 rounded-lg">
@@ -220,6 +233,12 @@ function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
                     {t.fromFile(enrichment.sourceFile)}
                 </span>
             </div>
+            <IconButton
+                icon="close"
+                appearance="discrete"
+                aria-label={da.actions.remove}
+                onClick={onRemove}
+            />
         </li>
     );
 }
@@ -228,21 +247,29 @@ function ConflictCard({
     conflict,
     resolutions,
     onResolve,
+    onRemove,
 }: {
     conflict: Conflict;
     resolutions: Record<string, ConflictResolution>;
     onResolve: (field: string, choice: ConflictResolution) => void;
+    onRemove: () => void;
 }) {
     const t = da.importDialog.preview;
     return (
         <li className="flex flex-col w-full bg-white border border-grey-300 rounded-lg overflow-hidden">
-            <div className="px-3 py-2.5">
+            <div className="px-3 py-2.5 flex items-start gap-2">
                 <RowHeader
                     name={conflict.employee.name}
                     metaParts={[
                         conflict.matchLabel,
                         t.fromFile(conflict.sourceFile),
                     ]}
+                />
+                <IconButton
+                    icon="close"
+                    appearance="discrete"
+                    aria-label={da.actions.remove}
+                    onClick={onRemove}
                 />
             </div>
             <div className="border-t border-grey-200 px-3 py-3 flex flex-col gap-4">
@@ -376,7 +403,13 @@ function ConflictRadioOption({
     );
 }
 
-function NewDraftCard({ creation }: { creation: Creation }) {
+function NewDraftCard({
+    creation,
+    onRemove,
+}: {
+    creation: Creation;
+    onRemove: () => void;
+}) {
     const t = da.importDialog.preview;
     return (
         <li className="flex items-center gap-3 w-full px-3 py-2.5 bg-white border border-grey-300 rounded-lg">
@@ -396,6 +429,12 @@ function NewDraftCard({ creation }: { creation: Creation }) {
                     {creation.sourceFile}
                 </span>
             </div>
+            <IconButton
+                icon="close"
+                appearance="discrete"
+                aria-label={da.actions.remove}
+                onClick={onRemove}
+            />
         </li>
     );
 }
@@ -409,6 +448,12 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
     const [resolutions, setResolutions] = useState<
         Record<string, Record<string, ConflictResolution>>
     >({});
+    /**
+     * Employee ids the user has dismissed from the preview via the X icon.
+     * Removed enrichments / conflicts / new drafts are filtered out of both
+     * the rendered list and the changes applied on confirm.
+     */
+    const [removed, setRemoved] = useState<Set<string>>(() => new Set());
     const employees = useEmployees();
     const t = da.importDialog;
 
@@ -417,6 +462,15 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
         setStep('idle');
         setPreview(null);
         setResolutions({});
+        setRemoved(new Set());
+    };
+
+    const handleRemovePreviewRow = (employeeId: string) => {
+        setRemoved((prev) => {
+            const next = new Set(prev);
+            next.add(employeeId);
+            return next;
+        });
     };
 
     useEffect(() => {
@@ -463,6 +517,7 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
         if (!preview) return;
         // Apply enrichments — additive merge, no destructive overwrite.
         for (const enrichment of preview.enrichments) {
+            if (removed.has(enrichment.employee.id)) continue;
             const patch: Partial<Employee> = {};
             for (const f of enrichment.fields) {
                 (patch as Record<string, unknown>)[String(f.key)] = f.value;
@@ -472,6 +527,7 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
         // Apply conflict resolutions — default is 'override' (the new value
         // wins). Only skip the patch when the user explicitly picked 'keep'.
         for (const conflict of preview.conflicts) {
+            if (removed.has(conflict.employee.id)) continue;
             const patch: Partial<Employee> = {};
             for (const f of conflict.fields) {
                 const choice =
@@ -487,10 +543,13 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
             }
         }
         // Append new drafts.
-        if (preview.creates.length > 0) {
-            appendEmployees(preview.creates.map((c) => c.employee));
+        const newDrafts = preview.creates.filter(
+            (c) => !removed.has(c.employee.id),
+        );
+        if (newDrafts.length > 0) {
+            appendEmployees(newDrafts.map((c) => c.employee));
         }
-        importBatch += preview.creates.length;
+        importBatch += newDrafts.length;
         onProcessed?.();
         onOpenChange(false);
     };
@@ -560,7 +619,9 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                         <PreviewBody
                             preview={preview}
                             resolutions={resolutions}
+                            removed={removed}
                             onResolve={handleResolve}
+                            onRemove={handleRemovePreviewRow}
                         />
                     </div>
                 )}
@@ -609,34 +670,53 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
 function PreviewBody({
     preview,
     resolutions,
+    removed,
     onResolve,
+    onRemove,
 }: {
     preview: Preview;
     resolutions: Record<string, Record<string, ConflictResolution>>;
+    removed: Set<string>;
     onResolve: (
         conflictKey: string,
         field: string,
         choice: ConflictResolution,
     ) => void;
+    onRemove: (employeeId: string) => void;
 }) {
     return (
         <ul className="flex flex-col gap-2 w-full max-w-none py-1">
-            {preview.enrichments.map((e) => (
-                <EnrichmentCard key={e.employee.id} enrichment={e} />
-            ))}
-            {preview.conflicts.map((c) => (
-                <ConflictCard
-                    key={c.employee.id}
-                    conflict={c}
-                    resolutions={resolutions[c.employee.id] ?? {}}
-                    onResolve={(field, choice) =>
-                        onResolve(c.employee.id, field, choice)
-                    }
-                />
-            ))}
-            {preview.creates.map((c) => (
-                <NewDraftCard key={c.employee.id} creation={c} />
-            ))}
+            {preview.enrichments
+                .filter((e) => !removed.has(e.employee.id))
+                .map((e) => (
+                    <EnrichmentCard
+                        key={e.employee.id}
+                        enrichment={e}
+                        onRemove={() => onRemove(e.employee.id)}
+                    />
+                ))}
+            {preview.conflicts
+                .filter((c) => !removed.has(c.employee.id))
+                .map((c) => (
+                    <ConflictCard
+                        key={c.employee.id}
+                        conflict={c}
+                        resolutions={resolutions[c.employee.id] ?? {}}
+                        onResolve={(field, choice) =>
+                            onResolve(c.employee.id, field, choice)
+                        }
+                        onRemove={() => onRemove(c.employee.id)}
+                    />
+                ))}
+            {preview.creates
+                .filter((c) => !removed.has(c.employee.id))
+                .map((c) => (
+                    <NewDraftCard
+                        key={c.employee.id}
+                        creation={c}
+                        onRemove={() => onRemove(c.employee.id)}
+                    />
+                ))}
         </ul>
     );
 }
