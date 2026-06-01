@@ -247,14 +247,15 @@ function ConflictCard({
     conflict,
     resolutions,
     onResolve,
-    onRemove,
 }: {
     conflict: Conflict;
     resolutions: Record<string, ConflictResolution>;
     onResolve: (field: string, choice: ConflictResolution) => void;
-    onRemove: () => void;
 }) {
     const t = da.importDialog.preview;
+    // Conflicts default to expanded so the user sees the radio group right
+    // away. The chevron toggles them collapsed without removing the card.
+    const [expanded, setExpanded] = useState(true);
     return (
         <li className="flex flex-col w-full bg-white border border-grey-300 rounded-lg overflow-hidden">
             <div className="px-3 py-2.5 flex items-start gap-2">
@@ -266,27 +267,30 @@ function ConflictCard({
                     ]}
                 />
                 <IconButton
-                    icon="close"
+                    icon={expanded ? 'chevron-up' : 'chevron-down'}
                     appearance="discrete"
-                    aria-label={da.actions.remove}
-                    onClick={onRemove}
+                    aria-label={expanded ? 'Skjul' : 'Vis'}
+                    aria-expanded={expanded}
+                    onClick={() => setExpanded((v) => !v)}
                 />
             </div>
-            <div className="border-t border-grey-200 px-3 py-3 flex flex-col gap-4">
-                {conflict.fields.map((f) => {
-                    const choice =
-                        resolutions[String(f.key)] ?? 'override';
-                    return (
-                        <ConflictFieldGroup
-                            key={String(f.key)}
-                            employeeId={conflict.employee.id}
-                            field={f}
-                            choice={choice}
-                            onResolve={(c) => onResolve(String(f.key), c)}
-                        />
-                    );
-                })}
-            </div>
+            {expanded && (
+                <div className="border-t border-grey-200 px-3 py-3 flex flex-col gap-4">
+                    {conflict.fields.map((f) => {
+                        const choice =
+                            resolutions[String(f.key)] ?? 'override';
+                        return (
+                            <ConflictFieldGroup
+                                key={String(f.key)}
+                                employeeId={conflict.employee.id}
+                                field={f}
+                                choice={choice}
+                                onResolve={(c) => onResolve(String(f.key), c)}
+                            />
+                        );
+                    })}
+                </div>
+            )}
         </li>
     );
 }
@@ -687,7 +691,6 @@ function PreviewBody({
                         onResolve={(field, choice) =>
                             onResolve(c.employee.id, field, choice)
                         }
-                        onRemove={() => onRemove(c.employee.id)}
                     />
                 ))}
             {preview.creates
