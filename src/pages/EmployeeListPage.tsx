@@ -150,6 +150,15 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
     };
 
     const [modalEmployee, setModalEmployee] = useState<Employee | null>(null);
+    /**
+     * Independent of `modalEmployee`: when the pencil icon revealed on row
+     * hover is clicked, we always open the V2 edit dialog regardless of the
+     * variant's row-click behaviour. Tracked separately so it doesn't
+     * collide with the schedule dialog on /scheduled-changes-v1.
+     */
+    const [editPenEmployee, setEditPenEmployee] = useState<Employee | null>(
+        null,
+    );
     const [processedSummary, setProcessedSummary] = useState<{
         mode: 'create' | 'append';
         files: UploadedFile[];
@@ -201,6 +210,7 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                     <EmployeeDraftsTable
                         employees={visibleEmployees}
                         onRowClick={handleRowClick}
+                        onEditClick={setEditPenEmployee}
                     />
                 </>
             ) : (
@@ -276,14 +286,21 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                 employees={processedSummary?.employees ?? []}
             />
 
-            {editMode === 'modal' && (
-                <EmployeeEditDialogV2
-                    employee={modalEmployee}
-                    onClose={() => setModalEmployee(null)}
-                />
-            )}
+            {/* V2 edit dialog: opened either by row click in modal mode OR
+                by the pencil icon on any variant. The pen state wins so the
+                schedule dialog doesn't accidentally show next to it. */}
+            <EmployeeEditDialogV2
+                employee={
+                    editPenEmployee ??
+                    (editMode === 'modal' ? modalEmployee : null)
+                }
+                onClose={() => {
+                    setEditPenEmployee(null);
+                    if (editMode === 'modal') setModalEmployee(null);
+                }}
+            />
 
-            {editMode === 'schedule' && (
+            {editMode === 'schedule' && editPenEmployee === null && (
                 <EmployeeEditDialogScheduleV1
                     employee={modalEmployee}
                     onClose={() => setModalEmployee(null)}

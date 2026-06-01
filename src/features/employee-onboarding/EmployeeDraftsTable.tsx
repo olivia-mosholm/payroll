@@ -5,6 +5,8 @@ import { da } from '../../data/danishCopy';
 type Props = {
     employees: Employee[];
     onRowClick?: (employee: Employee) => void;
+    /** Fired when the pencil icon revealed on row hover is clicked. */
+    onEditClick?: (employee: Employee) => void;
 };
 
 const STATUS_COLOR: Record<EmployeeStatus, Color> = {
@@ -27,7 +29,11 @@ function StatusBadge({ status }: { status: EmployeeStatus }) {
     );
 }
 
-export function EmployeeDraftsTable({ employees, onRowClick }: Props) {
+export function EmployeeDraftsTable({
+    employees,
+    onRowClick,
+    onEditClick,
+}: Props) {
     return (
         <Table3<Employee>
             id="employee-drafts"
@@ -91,7 +97,7 @@ export function EmployeeDraftsTable({ employees, onRowClick }: Props) {
                 header=""
                 align="right"
                 defaultWidth={80}
-                renderer={() => (
+                renderer={({ row }) => (
                     <span
                         className="inline-flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity"
                         onClick={(e) => e.stopPropagation()}
@@ -100,6 +106,7 @@ export function EmployeeDraftsTable({ employees, onRowClick }: Props) {
                             icon="edit"
                             appearance="discrete"
                             aria-label={da.detailPage.edit}
+                            onClick={() => onEditClick?.(row)}
                         />
                         <IconButton
                             icon="ellipsis-vertical"

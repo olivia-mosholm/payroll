@@ -339,8 +339,8 @@ export function EmployeeEditDialogScheduleV1({ employee, onClose }: Props) {
 
                 <Tabs defaultId="salary">
                     <Tabs.List>
-                        <Tabs.Trigger id="general">{t.tabs.general}</Tabs.Trigger>
-                        <Tabs.Trigger id="financial">{t.tabs.financial}</Tabs.Trigger>
+                        <Tabs.Trigger id="general">{t.tabs.personalInfo}</Tabs.Trigger>
+                        <Tabs.Trigger id="financial">{t.tabs.employment}</Tabs.Trigger>
                         <Tabs.Trigger id="vacation">{t.tabs.vacation}</Tabs.Trigger>
                         <Tabs.Trigger id="salary">{t.tabs.salary}</Tabs.Trigger>
                         <Tabs.Trigger id="pension">{t.tabs.pension}</Tabs.Trigger>
