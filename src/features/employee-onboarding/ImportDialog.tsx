@@ -693,7 +693,7 @@ function PreviewSection({
     children: React.ReactNode;
 }) {
     return (
-        <section className="flex flex-col gap-1.5">
+        <section className="flex flex-col gap-2">
             <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
                 {title} · {count}
             </p>
