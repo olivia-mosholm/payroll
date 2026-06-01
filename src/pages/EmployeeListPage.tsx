@@ -184,14 +184,14 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
             {demoState === 'processed' ? (
                 <>
                     <div className="flex items-center gap-2">
+                        <Button appearance="primary">
+                            {da.actions.addEmployee}
+                        </Button>
                         <Button
-                            appearance="primary"
+                            appearance="default"
                             menu={(props) => (
                                 <Menu {...props}>
                                     <Menu.Content>
-                                        <Menu.Item>
-                                            {da.actions.createManually}
-                                        </Menu.Item>
                                         <Menu.Item
                                             onClick={() => setImportOpen(true)}
                                         >
@@ -200,17 +200,6 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                                                 <Icon name="ai-stars" />
                                             </span>
                                         </Menu.Item>
-                                    </Menu.Content>
-                                </Menu>
-                            )}
-                        >
-                            {da.actions.addEmployee}
-                        </Button>
-                        <Button
-                            appearance="default"
-                            menu={(props) => (
-                                <Menu {...props}>
-                                    <Menu.Content>
                                         <Menu.Item disabled>
                                             {da.actions.morePlaceholder}
                                         </Menu.Item>
@@ -230,14 +219,14 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
             ) : (
                 <>
                     <div className="flex items-center gap-2">
+                        <Button appearance="primary">
+                            {da.actions.addEmployee}
+                        </Button>
                         <Button
-                            appearance="primary"
+                            appearance="default"
                             menu={(props) => (
                                 <Menu {...props}>
                                     <Menu.Content>
-                                        <Menu.Item>
-                                            {da.actions.createManually}
-                                        </Menu.Item>
                                         <Menu.Item
                                             onClick={() => setImportOpen(true)}
                                         >
@@ -246,17 +235,6 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                                                 <Icon name="ai-stars" />
                                             </span>
                                         </Menu.Item>
-                                    </Menu.Content>
-                                </Menu>
-                            )}
-                        >
-                            {da.actions.addEmployee}
-                        </Button>
-                        <Button
-                            appearance="default"
-                            menu={(props) => (
-                                <Menu {...props}>
-                                    <Menu.Content>
                                         <Menu.Item disabled>
                                             {da.actions.morePlaceholder}
                                         </Menu.Item>
