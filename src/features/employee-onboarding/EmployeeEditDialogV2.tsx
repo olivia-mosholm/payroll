@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Dialog,
     Tabs,
@@ -666,9 +666,39 @@ function TabPlaceholder() {
 
 // --- Dialog -----------------------------------------------------------
 
+// Ordered list of tab IDs so the "Gem" button can advance to the next one.
+const TAB_ORDER = [
+    'personal-info',
+    'employment',
+    'vacation',
+    'salary',
+    'pension',
+    'options',
+    'statistics',
+    'registration',
+];
+
 export function EmployeeEditDialogV2({ employee, onClose }: Props) {
     const open = !!employee;
     const t = da.editDialog;
+    const [activeTab, setActiveTab] = useState(TAB_ORDER[0]);
+
+    // Reset to the first tab each time the dialog re-opens (or switches to
+    // a different employee). Otherwise the user would re-open and land on
+    // whatever tab they last advanced to.
+    useEffect(() => {
+        if (open) setActiveTab(TAB_ORDER[0]);
+    }, [open, employee?.id]);
+
+    const handleSave = () => {
+        const i = TAB_ORDER.indexOf(activeTab);
+        if (i >= 0 && i < TAB_ORDER.length - 1) {
+            setActiveTab(TAB_ORDER[i + 1]);
+        } else {
+            // Last tab — Gem closes.
+            onClose();
+        }
+    };
 
     return (
         <Dialog
@@ -690,7 +720,7 @@ export function EmployeeEditDialogV2({ employee, onClose }: Props) {
                     </span>
                 </Dialog.Title>
 
-                <Tabs defaultId="personal-info">
+                <Tabs id={activeTab} onChange={setActiveTab}>
                     <Tabs.List>
                         <Tabs.Trigger id="personal-info">
                             {t.tabs.personalInfo}
@@ -743,7 +773,7 @@ export function EmployeeEditDialogV2({ employee, onClose }: Props) {
                         <Button appearance="default" onClick={onClose}>
                             {t.actions.cancel}
                         </Button>
-                        <Button appearance="primary" onClick={onClose}>
+                        <Button appearance="primary" onClick={handleSave}>
                             {t.actions.save}
                         </Button>
                         <Button appearance="default" onClick={onClose}>
