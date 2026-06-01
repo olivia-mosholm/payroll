@@ -4161,14 +4161,6 @@ table[data-taco='table3'] td[data-taco='save-status'] [data-taco='spinner'] svg 
   --tw-bg-opacity: 1;
   background-color: rgb(89 89 89 / var(--tw-bg-opacity, 1));
 }
-.bg-orange-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 227 187 / var(--tw-bg-opacity, 1));
-}
-.bg-red-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 218 210 / var(--tw-bg-opacity, 1));
-}
 .bg-red-700 {
   --tw-bg-opacity: 1;
   background-color: rgb(149 0 39 / var(--tw-bg-opacity, 1));

@@ -1,4 +1,4 @@
-import { Button, IconButton, Spinner } from '@economic/taco';
+import { Button, Icon, IconButton, Spinner } from '@economic/taco';
 import { da } from '../../data/danishCopy';
 
 export type UploadedFile = {
@@ -7,33 +7,18 @@ export type UploadedFile = {
     size: number;
 };
 
-type FileBadge = { label: string; bg: string; text: string };
-
-export function fileBadge(filename: string): FileBadge {
-    const ext = filename.toLowerCase().split('.').pop() ?? '';
-    switch (ext) {
-        case 'pdf':
-            return { label: 'PDF', bg: 'bg-red-100', text: 'text-red-700' };
-        case 'xls':
-        case 'xlsx':
-        case 'csv':
-            return { label: 'XLS', bg: 'bg-green-100', text: 'text-green-700' };
-        case 'doc':
-        case 'docx':
-            return { label: 'DOC', bg: 'bg-blue-100', text: 'text-blue-700' };
-        case 'jpg':
-        case 'jpeg':
-        case 'png':
-        case 'gif':
-        case 'webp':
-            return { label: 'IMG', bg: 'bg-orange-100', text: 'text-orange-700' };
-        default:
-            return {
-                label: (ext || 'FIL').toUpperCase().slice(0, 3),
-                bg: 'bg-grey-200',
-                text: 'text-neutral-700',
-            };
-    }
+/**
+ * Visual file-type indicator used at the start of every uploaded-file row.
+ * Used to be a coloured "PDF" / "XLS" / "IMG" letter chip — the prototype
+ * standardised on a single blue document icon since the file-type signal
+ * wasn't pulling its weight in user testing.
+ */
+export function FileTypeIcon() {
+    return (
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded shrink-0 bg-blue-100 text-neutral-900">
+            <Icon name="document" />
+        </span>
+    );
 }
 
 export function formatSize(bytes: number): string {
@@ -51,14 +36,9 @@ export function FileRow({
     onRemove: () => void;
     disabled?: boolean;
 }) {
-    const badge = fileBadge(file.name);
     return (
         <li className="flex items-center gap-3 w-full px-3 py-2 bg-white border border-grey-300 rounded-lg">
-            <span
-                className={`inline-flex items-center justify-center w-12 h-10 rounded shrink-0 text-xs font-bold ${badge.bg} ${badge.text}`}
-            >
-                {badge.label}
-            </span>
+            <FileTypeIcon />
             <span className="flex-1 min-w-0 flex flex-col">
                 <span className="text-sm font-bold text-neutral-900 truncate">
                     {file.name}

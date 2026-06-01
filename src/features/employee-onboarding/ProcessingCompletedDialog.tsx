@@ -1,6 +1,6 @@
 import { Dialog, Button, Badge, Icon } from '@economic/taco';
 import type { Employee } from '../../data/mockEmployees';
-import type { UploadedFile } from './UploadedFilesList';
+import { FileTypeIcon, type UploadedFile } from './UploadedFilesList';
 import { da } from '../../data/danishCopy';
 
 type Props = {
@@ -12,34 +12,6 @@ type Props = {
     files: UploadedFile[];
     employees: Employee[];
 };
-
-const IMAGE_EXTS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic']);
-
-function ext(filename: string): string {
-    return filename.toLowerCase().split('.').pop() ?? '';
-}
-
-function isImage(filename: string): boolean {
-    return IMAGE_EXTS.has(ext(filename));
-}
-
-type ImgBadge = { label: string; bg: string; text: string };
-function imgBadge(filename: string): ImgBadge {
-    const e = ext(filename);
-    if (IMAGE_EXTS.has(e))
-        return { label: 'IMG', bg: 'bg-orange-100', text: 'text-orange-700' };
-    if (e === 'pdf')
-        return { label: 'PDF', bg: 'bg-red-100', text: 'text-red-700' };
-    if (e === 'xls' || e === 'xlsx' || e === 'csv')
-        return { label: 'XLS', bg: 'bg-green-100', text: 'text-green-700' };
-    if (e === 'doc' || e === 'docx')
-        return { label: 'DOC', bg: 'bg-blue-100', text: 'text-blue-700' };
-    return {
-        label: (e || 'FIL').toUpperCase().slice(0, 3),
-        bg: 'bg-grey-200',
-        text: 'text-neutral-700',
-    };
-}
 
 function CreatedRow({
     employeeName,
@@ -79,14 +51,9 @@ function CreatedRow({
 
 function FailedRow({ filename }: { filename: string }) {
     const t = da.processedDialog;
-    const badge = imgBadge(filename);
     return (
         <li className="flex items-center gap-3 w-full px-3 py-3 bg-red-50 rounded-lg">
-            <span
-                className={`inline-flex items-center justify-center w-12 h-10 rounded shrink-0 text-xs font-bold ${badge.bg} ${badge.text}`}
-            >
-                {badge.label}
-            </span>
+            <FileTypeIcon />
             <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                 <span className="text-sm font-bold text-neutral-900 truncate">
                     {filename}
