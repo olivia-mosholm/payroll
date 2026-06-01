@@ -161,6 +161,7 @@ export const danishToEnglish: Record<string, string> = {
     'KONFLIKT — VÆLG VÆRDI': 'CONFLICT — PICK A VALUE',
     'OPRETTER NYT UDKAST': 'CREATING NEW DRAFT',
     Kladde: 'Draft',
+    opdateret: 'updated',
     'CPR-match': 'Civil reg. match',
     'Navne-match': 'Name match',
     'Nye felter fra dokumentet': 'New fields from the document',

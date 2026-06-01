@@ -201,29 +201,25 @@ function RowHeader({
 function EnrichmentCard({ enrichment }: { enrichment: Enrichment }) {
     const t = da.importDialog.preview;
     return (
-        <li className="flex flex-col w-full bg-white border border-grey-300 rounded-lg overflow-hidden">
-            <div className="px-3 py-2.5">
-                <RowHeader
-                    name={enrichment.employee.name}
-                    metaParts={[
-                        enrichment.matchLabel,
-                        t.newFields(enrichment.fields.length),
-                        t.fromFile(enrichment.sourceFile),
-                    ]}
-                />
+        <li className="flex items-center gap-3 w-full px-3 py-2.5 bg-white border border-grey-300 rounded-lg">
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-grey-100 text-neutral-700 shrink-0">
+                <Icon name="document" />
+            </span>
+            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-bold text-neutral-900">
+                        {enrichment.employee.name}
+                    </span>
+                    <Badge color="blue" subtle>
+                        {t.updatePill}
+                    </Badge>
+                </div>
+                <span className="text-xs text-neutral-500">
+                    {enrichment.matchLabel} ·{' '}
+                    {t.newFields(enrichment.fields.length)} ·{' '}
+                    {t.fromFile(enrichment.sourceFile)}
+                </span>
             </div>
-            <dl className="border-t border-grey-200 px-3 py-2 flex flex-col gap-1 text-xs">
-                {enrichment.fields.map((f) => (
-                    <div key={String(f.key)} className="flex flex-col">
-                        <dt className="text-neutral-500">{f.label}</dt>
-                        <dd>
-                            <span className="rounded bg-yellow-100 text-neutral-900 inline-block max-w-full truncate px-1.5 py-px -ml-1.5">
-                                {f.value}
-                            </span>
-                        </dd>
-                    </div>
-                ))}
-            </dl>
         </li>
     );
 }

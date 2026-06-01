@@ -140,6 +140,7 @@ export const da = {
             conflictsHeading: 'KONFLIKT — VÆLG VÆRDI',
             createsHeading: 'OPRETTER NYT UDKAST',
             draftPill: 'Kladde',
+            updatePill: 'opdateret',
             matchCpr: 'CPR-match',
             matchName: 'Navne-match',
             newFieldsLabel: 'Nye felter fra dokumentet',

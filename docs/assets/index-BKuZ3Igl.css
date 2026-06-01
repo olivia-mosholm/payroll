@@ -3549,9 +3549,6 @@ table[data-taco='table3'] td[data-taco='save-status'] [data-taco='spinner'] svg 
 .max-w-\[theme\(spacing\.96\)\] {
   max-width: 24rem;
 }
-.max-w-full {
-  max-width: 100%;
-}
 .max-w-md {
   max-width: 28rem;
 }
@@ -4374,10 +4371,6 @@ table[data-taco='table3'] td[data-taco='save-status'] [data-taco='spinner'] svg 
 .py-7 {
   padding-top: 1.75rem;
   padding-bottom: 1.75rem;
-}
-.py-px {
-  padding-top: 1px;
-  padding-bottom: 1px;
 }
 .\!pb-0 {
   padding-bottom: 0px !important;
