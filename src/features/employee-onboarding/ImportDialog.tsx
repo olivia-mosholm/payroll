@@ -358,7 +358,7 @@ function ConflictRadioOption({
             ? 'bg-yellow-100 text-neutral-900'
             : 'text-neutral-700';
     return (
-        <label className="flex items-center gap-3 cursor-pointer" aria-label={label}>
+        <label className="flex items-center gap-3 cursor-pointer">
             <input
                 type="radio"
                 name={name}
@@ -376,6 +376,13 @@ function ConflictRadioOption({
                 {checked && (
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
                 )}
+            </span>
+            <span
+                className={`text-xs font-bold ${
+                    checked ? 'text-blue-700' : 'text-neutral-900'
+                } shrink-0`}
+            >
+                {label}
             </span>
             <span
                 className={`text-xs rounded ${
