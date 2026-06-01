@@ -190,8 +190,8 @@ function RowHeader({
 }) {
     return (
         <div className="flex items-start gap-3 flex-1 min-w-0">
-            <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-grey-100 text-neutral-700 shrink-0">
-                <Icon name="document" />
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-blue-100 text-neutral-900 shrink-0">
+                <Icon name="person-solid" />
             </span>
             <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                 <span className="text-sm font-bold text-neutral-900">
@@ -215,8 +215,8 @@ function EnrichmentCard({
     const t = da.importDialog.preview;
     return (
         <li className="flex items-center gap-3 w-full px-3 py-2.5 bg-white border border-grey-300 rounded-lg">
-            <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-grey-100 text-neutral-700 shrink-0">
-                <Icon name="document" />
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-blue-100 text-neutral-900 shrink-0">
+                <Icon name="person-solid" />
             </span>
             <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -413,8 +413,8 @@ function NewDraftCard({
     const t = da.importDialog.preview;
     return (
         <li className="flex items-center gap-3 w-full px-3 py-2.5 bg-white border border-grey-300 rounded-lg">
-            <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-grey-100 text-neutral-700 shrink-0">
-                <Icon name="document" />
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded bg-blue-100 text-neutral-900 shrink-0">
+                <Icon name="person-solid" />
             </span>
             <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
