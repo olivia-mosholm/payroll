@@ -111,7 +111,7 @@ export const danishToEnglish: Record<string, string> = {
     'Indlæs filer': 'Load files',
     'Ny medarbejder': 'New employee',
     'Opret manuelt': 'Create manually',
-    'Hurtig oprettelse': 'Quick creation',
+    Import: 'Import',
     Mere: 'More',
     'Ingen handlinger endnu': 'No actions yet',
     Importér: 'Import',

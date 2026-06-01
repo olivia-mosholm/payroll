@@ -69,7 +69,7 @@ export const da = {
         process: 'Indlæs filer',
         addEmployee: 'Ny medarbejder',
         createManually: 'Opret manuelt',
-        quickCreate: 'Hurtig oprettelse',
+        quickCreate: 'Import',
         more: 'Mere',
         morePlaceholder: 'Ingen handlinger endnu',
         import: 'Importér',
