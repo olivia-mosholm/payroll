@@ -224,82 +224,42 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                 </>
             ) : (
                 <>
-                    {demoState !== 'empty' && (
-                        <div className="flex items-center gap-2">
+                    <div className="mx-auto w-full max-w-[568px] flex flex-col gap-4">
+                    <div className="rounded-[10px] p-6 flex flex-col gap-3 bg-white max-h-[calc(100vh-240px)] overflow-hidden">
+                        <EmptyState />
+                        <DropZone
+                            onFiles={handleFiles}
+                            description={da.empty.body}
+                            hideBrowseButton
+                        />
+                        <div className="flex justify-center gap-2">
                             <Button appearance="primary">
-                                {da.actions.addEmployee}
+                                {da.actions.createManually}
                             </Button>
                             <Button
                                 appearance="default"
-                                menu={(props) => (
-                                    <Menu {...props}>
-                                        <Menu.Content>
-                                            <Menu.Item
-                                                onClick={() =>
-                                                    setImportOpen(true)
-                                                }
-                                            >
-                                                <span className="inline-flex items-center justify-between gap-3 w-full">
-                                                    <span>
-                                                        {da.actions.quickCreate}
-                                                    </span>
-                                                    <Icon name="ai-stars" />
-                                                </span>
-                                            </Menu.Item>
-                                            <Menu.Item disabled>
-                                                {da.actions.morePlaceholder}
-                                            </Menu.Item>
-                                        </Menu.Content>
-                                    </Menu>
-                                )}
+                                onClick={() =>
+                                    emptyStateFileInputRef.current?.click()
+                                }
                             >
-                                {da.actions.more}
+                                {da.dropzone.browse}
                             </Button>
+                            <input
+                                ref={emptyStateFileInputRef}
+                                type="file"
+                                multiple
+                                accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const picked = Array.from(
+                                        e.target.files ?? [],
+                                    );
+                                    if (picked.length > 0) handleFiles(picked);
+                                    e.target.value = '';
+                                }}
+                                aria-hidden="true"
+                            />
                         </div>
-                    )}
-                    <div className="mx-auto w-full max-w-[568px] flex flex-col gap-4">
-                    <div className="rounded-[10px] p-6 flex flex-col gap-3 bg-white max-h-[calc(100vh-240px)] overflow-hidden">
-                        <EmptyState compact={demoState === 'uploaded'} />
-                        {demoState === 'empty' && (
-                            <div className="flex justify-center gap-2">
-                                <Button appearance="primary">
-                                    {da.actions.createManually}
-                                </Button>
-                                <Button
-                                    appearance="default"
-                                    onClick={() =>
-                                        emptyStateFileInputRef.current?.click()
-                                    }
-                                >
-                                    {da.dropzone.browse}
-                                </Button>
-                                <input
-                                    ref={emptyStateFileInputRef}
-                                    type="file"
-                                    multiple
-                                    accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                        const picked = Array.from(
-                                            e.target.files ?? [],
-                                        );
-                                        if (picked.length > 0)
-                                            handleFiles(picked);
-                                        e.target.value = '';
-                                    }}
-                                    aria-hidden="true"
-                                />
-                            </div>
-                        )}
-                        <DropZone
-                            onFiles={handleFiles}
-                            description={
-                                demoState === 'empty'
-                                    ? da.empty.body
-                                    : undefined
-                            }
-                            hideBrowseButton={demoState === 'empty'}
-                        />
                         {demoState === 'uploaded' && (
                             <div className="mt-2 flex-1 min-h-0 overflow-hidden">
                                 <UploadedFilesList

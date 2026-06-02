@@ -55,14 +55,14 @@ export function DropZone({
             tabIndex={0}
             aria-label={da.dropzone.title}
         >
-            {description && (
-                <p className="text-sm leading-5 text-neutral-700 max-w-[350px] text-center mb-2 mt-0">
-                    {description}
-                </p>
-            )}
             <p className="font-bold text-base leading-tight text-neutral-900 mb-0">
                 {da.dropzone.title}
             </p>
+            {description && (
+                <p className="text-sm leading-5 text-neutral-700 max-w-[350px] text-center mt-2 mb-0">
+                    {description}
+                </p>
+            )}
             {!hideBrowseButton && (
                 <>
                     <p className="text-sm leading-tight text-neutral-900 mt-3 mb-3">
