@@ -16,9 +16,6 @@ export function EmptyState({ compact = false }: Props) {
             <h2 className="font-bold text-2xl leading-9 text-neutral-900">
                 {da.empty.heading}
             </h2>
-            <p className="text-sm leading-5 text-neutral-900 max-w-[350px]">
-                {da.empty.body}
-            </p>
         </div>
     );
 }

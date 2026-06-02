@@ -261,7 +261,14 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                                 </Button>
                             </div>
                         )}
-                        <DropZone onFiles={handleFiles} />
+                        <DropZone
+                            onFiles={handleFiles}
+                            description={
+                                demoState === 'empty'
+                                    ? da.empty.body
+                                    : undefined
+                            }
+                        />
                         {demoState === 'uploaded' && (
                             <div className="mt-2 flex-1 min-h-0 overflow-hidden">
                                 <UploadedFilesList

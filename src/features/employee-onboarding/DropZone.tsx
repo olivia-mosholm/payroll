@@ -4,9 +4,16 @@ import { da } from '../../data/danishCopy';
 
 type Props = {
     onFiles: (files: File[]) => void;
+    /**
+     * Optional descriptive paragraph rendered inside the dashed-border
+     * dropzone, above the title. Used on the empty-state page where the
+     * "Træk lønsedler, regneark eller billeder…" body copy moves into the
+     * dropzone rather than sitting above it.
+     */
+    description?: string;
 };
 
-export function DropZone({ onFiles }: Props) {
+export function DropZone({ onFiles, description }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleDrop: React.DragEventHandler = (e) => {
@@ -38,6 +45,11 @@ export function DropZone({ onFiles }: Props) {
             tabIndex={0}
             aria-label={da.dropzone.title}
         >
+            {description && (
+                <p className="text-sm leading-5 text-neutral-700 max-w-[350px] text-center mb-2 mt-0">
+                    {description}
+                </p>
+            )}
             <p className="font-bold text-base leading-tight text-neutral-900 mb-0">
                 {da.dropzone.title}
             </p>
