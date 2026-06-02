@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button, Menu, Icon } from '@economic/taco';
 import { EmptyState } from '../features/employee-onboarding/EmptyState';
@@ -159,6 +159,12 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
     const [editPenEmployee, setEditPenEmployee] = useState<Employee | null>(
         null,
     );
+    /**
+     * The empty-state "Vælg filer" button lives outside the DropZone
+     * now, so we keep a separate hidden file input + ref so clicking the
+     * button can open the file picker.
+     */
+    const emptyStateFileInputRef = useRef<HTMLInputElement>(null);
     const [processedSummary, setProcessedSummary] = useState<{
         mode: 'create' | 'append';
         files: UploadedFile[];
@@ -255,10 +261,34 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                     <div className="rounded-[10px] p-6 flex flex-col gap-3 bg-white max-h-[calc(100vh-240px)] overflow-hidden">
                         <EmptyState compact={demoState === 'uploaded'} />
                         {demoState === 'empty' && (
-                            <div className="flex justify-center">
+                            <div className="flex justify-center gap-2">
                                 <Button appearance="primary">
-                                    {da.actions.addEmployee}
+                                    {da.actions.createManually}
                                 </Button>
+                                <Button
+                                    appearance="default"
+                                    onClick={() =>
+                                        emptyStateFileInputRef.current?.click()
+                                    }
+                                >
+                                    {da.dropzone.browse}
+                                </Button>
+                                <input
+                                    ref={emptyStateFileInputRef}
+                                    type="file"
+                                    multiple
+                                    accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const picked = Array.from(
+                                            e.target.files ?? [],
+                                        );
+                                        if (picked.length > 0)
+                                            handleFiles(picked);
+                                        e.target.value = '';
+                                    }}
+                                    aria-hidden="true"
+                                />
                             </div>
                         )}
                         <DropZone
@@ -268,6 +298,7 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                                     ? da.empty.body
                                     : undefined
                             }
+                            hideBrowseButton={demoState === 'empty'}
                         />
                         {demoState === 'uploaded' && (
                             <div className="mt-2 flex-1 min-h-0 overflow-hidden">

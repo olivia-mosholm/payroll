@@ -11,9 +11,19 @@ type Props = {
      * dropzone rather than sitting above it.
      */
     description?: string;
+    /**
+     * When true, suppress the inline "eller / Vælg filer" affordance. The
+     * dropzone only handles drag-and-drop in this mode; the caller renders
+     * its own buttons above it.
+     */
+    hideBrowseButton?: boolean;
 };
 
-export function DropZone({ onFiles, description }: Props) {
+export function DropZone({
+    onFiles,
+    description,
+    hideBrowseButton,
+}: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleDrop: React.DragEventHandler = (e) => {
@@ -53,12 +63,19 @@ export function DropZone({ onFiles, description }: Props) {
             <p className="font-bold text-base leading-tight text-neutral-900 mb-0">
                 {da.dropzone.title}
             </p>
-            <p className="text-sm leading-tight text-neutral-900 mt-3 mb-3">
-                {da.dropzone.separator}
-            </p>
-            <Button appearance="ghost" onClick={handleBrowseClick}>
-                {da.dropzone.browse}
-            </Button>
+            {!hideBrowseButton && (
+                <>
+                    <p className="text-sm leading-tight text-neutral-900 mt-3 mb-3">
+                        {da.dropzone.separator}
+                    </p>
+                    <Button
+                        appearance="ghost"
+                        onClick={handleBrowseClick}
+                    >
+                        {da.dropzone.browse}
+                    </Button>
+                </>
+            )}
             <input
                 ref={inputRef}
                 type="file"
