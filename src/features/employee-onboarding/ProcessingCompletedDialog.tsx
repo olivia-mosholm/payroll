@@ -22,8 +22,8 @@ function CreatedRow({
 }) {
     return (
         <li className="flex items-center gap-3 w-full px-3 py-3 bg-white border border-grey-300 rounded-lg">
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded text-neutral-500 shrink-0">
-                <Icon name="document" />
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-100 text-neutral-900 shrink-0">
+                <Icon name="person-solid" />
             </span>
             <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
