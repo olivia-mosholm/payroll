@@ -4,6 +4,7 @@ function makeVariantPaths(base: string) {
     return {
         base,
         employees: `${base}/employees`,
+        employeeReview: `${base}/employees/review`,
         employee: (id: string) => `${base}/employees/${id}`,
         optionsPreview: `${base}/employees/options-preview`,
         employeeGroups: `${base}/employees/groups`,

@@ -16,7 +16,7 @@ export type UploadedFile = {
 export function FileTypeIcon() {
     return (
         <span className="inline-flex items-center justify-center w-10 h-10 rounded shrink-0 bg-blue-100 text-neutral-900">
-            <Icon name="person-solid" />
+            <Icon name="document" />
         </span>
     );
 }
@@ -78,7 +78,7 @@ export function UploadedFilesList({
     hideActions = false,
 }: Props) {
     return (
-        <div className="flex flex-col gap-3 w-full h-full min-h-0">
+        <div className="flex flex-col gap-1 w-full h-full min-h-0">
             <ul className="flex flex-col gap-2 w-full max-w-none flex-1 min-h-0 overflow-y-auto">
                 {files.map((file) => (
                     <FileRow

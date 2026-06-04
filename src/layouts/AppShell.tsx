@@ -113,6 +113,13 @@ export function AppShell() {
                                     {da.nav.allEmployees}
                                 </Navigation2.Link>
                                 <Navigation2.Link
+                                    href={variantPaths.employeeReview}
+                                    active={isActive(variantPaths.employeeReview)}
+                                    onClick={navTo(variantPaths.employeeReview)}
+                                >
+                                    {da.nav.employeeReview}
+                                </Navigation2.Link>
+                                <Navigation2.Link
                                     href={variantPaths.employeeGroups}
                                     active={isActive(variantPaths.employeeGroups)}
                                     onClick={navTo(variantPaths.employeeGroups)}

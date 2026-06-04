@@ -13,6 +13,7 @@ export const da = {
         payrollArchive: 'Arkiv',
         employee: 'Medarbejder',
         allEmployees: 'Alle medarbejdere',
+        employeeReview: 'Gennemgå kladder',
         employeeGroups: 'Medarbejdergrupper',
         reports: 'Rapporter',
         vacationAllowance: 'Feriepenge',
@@ -23,8 +24,9 @@ export const da = {
         title: 'Medarbejdere',
     },
     empty: {
-        heading: 'Tilføj din første medarbejder',
-        body: 'Træk lønsedler, regneark eller billeder ind i dette område for automatisk at oprette medarbejderudkast.',
+        heading: 'Opret dine medarbejdere med ét klik',
+        body: 'Træk filer hertil, eller vælg dem fra din computer — Vi finder medarbejderdata og opretter udkast klar til gennemgang.',
+        browseLink: 'din computer',
     },
     dropzone: {
         title: 'Træk filerne direkte hertil',
@@ -98,7 +100,7 @@ export const da = {
     },
     processedDialog: {
         titleN: (n: number) =>
-            `${n} ${n === 1 ? 'kladde' : 'kladder'} klar til oprettelse`,
+            `${n} ${n === 1 ? 'medarbejder' : 'medarbejdere'} klar til gennemgang`,
         sectionCreated: 'Kladder klar til oprettelse',
         sectionFailed: 'Kunne ikke læses',
         draftBadge: 'Kladde',

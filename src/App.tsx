@@ -5,6 +5,7 @@ import { EmployeeListPage } from './pages/EmployeeListPage';
 import { EmployeeDetailPage } from './pages/EmployeeDetailPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { OptionsPreviewPage } from './pages/OptionsPreviewPage';
+import { EmployeeReviewPage } from './pages/EmployeeReviewPage';
 import { TranslatorProvider } from './i18n/Translator';
 import { da } from './data/danishCopy';
 import { PATHS } from './paths';
@@ -24,6 +25,10 @@ function App() {
                     <Route
                         path="employees"
                         element={<EmployeeListPage editMode="page" />}
+                    />
+                    <Route
+                        path="employees/review"
+                        element={<EmployeeReviewPage />}
                     />
                     <Route
                         path="employees/options-preview"

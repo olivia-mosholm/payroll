@@ -64,9 +64,6 @@ function AiInput({
         <Input
             defaultValue={defaultValue ?? ''}
             disabled={disabled}
-            className={
-                aiExtracted ? 'bg-yellow-100 border-yellow-400' : undefined
-            }
             aria-label={aiExtracted ? 'Udtrukket af AI' : undefined}
             postfix={postfix}
         />

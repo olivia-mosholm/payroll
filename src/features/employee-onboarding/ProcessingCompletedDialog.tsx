@@ -1,67 +1,106 @@
-import { Dialog, Button, Badge, Icon } from '@economic/taco';
+import { useState } from 'react';
+import { Badge, Button, Dialog, Heading, Input, List, Text, type Color } from '@economic/taco';
 import type { Employee } from '../../data/mockEmployees';
-import { FileTypeIcon, type UploadedFile } from './UploadedFilesList';
+import type { UploadedFile } from './UploadedFilesList';
 import { da } from '../../data/danishCopy';
 
 type Props = {
     open: boolean;
-    /** Cancel the import — closes without creating drafts. */
     onClose: () => void;
-    /** Commit the import — creates the listed drafts and closes. */
     onConfirm: () => void;
     files: UploadedFile[];
     employees: Employee[];
 };
 
-function CreatedRow({
-    employeeName,
-    sourceFile,
-}: {
-    employeeName: string;
-    sourceFile: string;
-}) {
-    return (
-        <li className="flex items-center gap-3 w-full px-3 py-3 bg-white border border-grey-300 rounded-lg">
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-100 text-neutral-900 shrink-0">
-                <Icon name="person-solid" />
-            </span>
-            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-neutral-900">
-                        {employeeName}
-                    </span>
-                    <Badge color="orange" subtle>
-                        {da.processedDialog.draftBadge}
-                    </Badge>
-                </div>
-                <span className="text-xs text-neutral-500 truncate">
-                    {sourceFile}
-                </span>
-            </div>
-            <button
-                type="button"
-                aria-label="Fjern"
-                className="inline-flex items-center justify-center w-8 h-8 rounded text-neutral-500 hover:bg-grey-200 hover:text-neutral-900 shrink-0"
-            >
-                <Icon name="close" />
-            </button>
-        </li>
-    );
+type FieldRow = { label: string; value: string; source: string };
+
+function getFields(employee: Employee, sourceFile: string): FieldRow[] {
+    const rows: FieldRow[] = [
+        { label: da.editDialog.fields.cpr, value: employee.cpr, source: sourceFile },
+        { label: da.editDialog.fields.fullName, value: employee.name, source: sourceFile },
+    ];
+    if (employee.email) rows.push({ label: da.editDialog.fields.email, value: employee.email, source: sourceFile });
+    if (employee.address) rows.push({ label: da.editDialog.fields.address, value: employee.address, source: sourceFile });
+    if (employee.postCode) rows.push({ label: da.editDialog.fields.postCode, value: employee.postCode, source: sourceFile });
+    if (employee.city) rows.push({ label: da.editDialog.fields.city, value: employee.city, source: sourceFile });
+    rows.push({ label: da.editDialog.fields.salary, value: `${employee.salary.toLocaleString('da-DK')} kr.`, source: sourceFile });
+    rows.push({ label: da.editDialog.fields.employmentDate, value: employee.hireDate, source: sourceFile });
+    return rows;
 }
 
-function FailedRow({ filename }: { filename: string }) {
-    const t = da.processedDialog;
+type ItemStatus = 'default' | 'created' | 'deleted';
+
+function EmployeeListItem({
+    employee,
+    sourceFile,
+    onRemove,
+    onConfirm,
+}: {
+    employee: Employee;
+    sourceFile: string;
+    onRemove: () => void;
+    onConfirm: () => void;
+}) {
+    const [status, setStatus] = useState<ItemStatus>('default');
+    const fields = getFields(employee, sourceFile);
+
+    const iconColor: Color =
+        status === 'created' ? 'green' :
+        status === 'deleted'  ? 'red'   :
+        'blue';
+
+    const statusLabel =
+        status === 'created' ? <Text size="sm" color="success" as="span"> (oprettet)</Text> :
+        status === 'deleted'  ? <Text size="sm" color="danger"  as="span"> (slettet)</Text>  :
+        null;
+
+    const isLocked = status !== 'default';
+
     return (
-        <li className="flex items-center gap-3 w-full px-3 py-3 bg-red-50 rounded-lg">
-            <FileTypeIcon />
-            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                <span className="text-sm font-bold text-neutral-900 truncate">
-                    {filename}
-                </span>
-                <span className="text-xs text-red-700">{t.errorPoorScan}</span>
+        // key forces remount (and thus collapse) whenever status changes
+        <List.Collapsible
+            key={status}
+            title={<span className="font-semibold">{employee.name}{statusLabel}</span>}
+            description={`${fields.length} felter udfyldt · 1 kilde`}
+            icon="person"
+            color={iconColor}
+            defaultOpen={false}
+            control={
+                status === 'created' ? <Badge color="green" subtle>Oprettet</Badge> :
+                status === 'deleted'  ? <Badge color="red"   subtle>Slettet</Badge>  :
+                undefined
+            }
+        >
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 pt-2 pb-1">
+                {fields.map((f, i) => (
+                    <div key={i} className="flex flex-col gap-1">
+                        <Text size="sm" bold>{f.label}</Text>
+                        <Input
+                            defaultValue={f.value}
+                            disabled={isLocked}
+                            className={isLocked ? undefined : 'bg-yellow-100 border-yellow-400'}
+                            aria-label="Udtrukket af AI"
+                        />
+                        <Text size="sm" color="secondary">{f.source}</Text>
+                    </div>
+                ))}
             </div>
-            <Button appearance="default">{t.tryAgain}</Button>
-        </li>
+            <div className="flex items-center justify-end gap-2 px-4 pt-4 pb-3">
+                <Button appearance="default" disabled={isLocked} onClick={() => { setStatus('deleted'); onRemove(); }}>
+                    Fjern medarbejder
+                </Button>
+                <Button appearance="default" disabled={isLocked}>
+                    Gem som kladde
+                </Button>
+                <Button
+                    appearance="primary"
+                    disabled={isLocked}
+                    onClick={() => setStatus('created')}
+                >
+                    Opret medarbejder
+                </Button>
+            </div>
+        </List.Collapsible>
     );
 }
 
@@ -72,79 +111,49 @@ export function ProcessingCompletedDialog({
     files,
     employees,
 }: Props) {
-    const t = da.processedDialog;
-    // Split dropped files into "successfully read" vs "failed":
-    // image files are treated as scan-quality failures; everything else
-    // produced a draft. Each successful file pairs 1:1 with an employee in
-    // order; if there are fewer files than employees, remaining employees
-    // share a generic source line.
-    // Every dropped file is treated as a successful read in this prototype;
-    // there is no "failed scan" bucket.
-    const successFiles = files;
-    const failedFiles: typeof files = [];
+    const [list, setList] = useState<Employee[]>([]);
+    const effectiveList = open && list.length === 0 && employees.length > 0 ? employees : list;
 
-    // Show all created drafts. If there are more drafts than source files
-    // (the prototype guarantees ≥3 drafts for a consistent test experience),
-    // we recycle through the available files for each extra draft.
-    const successPairs = employees.map((employee, i) => ({
-        employee,
-        sourceFile:
-            successFiles.length > 0
-                ? successFiles[i % successFiles.length].name
-                : '',
+    const pairs = effectiveList.map((emp, i) => ({
+        employee: emp,
+        sourceFile: files.length > 0 ? files[i % files.length].name : 'Dokument',
     }));
 
     return (
         <Dialog
             open={open}
             onChange={(next) => {
-                if (!next) onClose();
+                if (!next) { onClose(); setList([]); }
+                else if (employees.length > 0 && list.length === 0) setList(employees);
             }}
             size="md"
         >
-            <Dialog.Content aria-label={t.titleN(successPairs.length)}>
-                <div className="flex flex-col items-center gap-3 pt-4 pb-2">
-                    <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-700">
-                        <Icon name="tick" />
-                    </span>
-                    <h2 className="text-2xl font-bold text-neutral-900 text-center mt-1">
-                        {t.titleN(successPairs.length)}
-                    </h2>
+            <Dialog.Content aria-label={da.processedDialog.titleN(pairs.length)}>
+                <div className="pb-3 pt-1">
+                    <Heading level={2} size="md">
+                        {da.processedDialog.titleN(pairs.length)}
+                    </Heading>
                 </div>
 
-                <div className="flex flex-col gap-4 py-2">
-                    {successPairs.length > 0 && (
-                        <section className="flex flex-col gap-2">
-                            <ul className="flex flex-col gap-2 w-full max-w-none">
-                                {successPairs.map((p) => (
-                                    <CreatedRow
-                                        key={p.employee.id}
-                                        employeeName={p.employee.name}
-                                        sourceFile={p.sourceFile}
-                                    />
-                                ))}
-                            </ul>
-                        </section>
-                    )}
-
-                    {failedFiles.length > 0 && (
-                        <section className="flex flex-col gap-2">
-                            <p className="text-xs font-bold uppercase tracking-wider text-red-700">
-                                {t.sectionFailed} · {failedFiles.length}
-                            </p>
-                            <ul className="flex flex-col gap-2 w-full max-w-none">
-                                {failedFiles.map((f) => (
-                                    <FailedRow key={f.id} filename={f.name} />
-                                ))}
-                            </ul>
-                        </section>
-                    )}
-                </div>
+                <List>
+                    {pairs.map((p) => (
+                        <EmployeeListItem
+                            key={p.employee.id}
+                            employee={p.employee}
+                            sourceFile={p.sourceFile}
+                            onRemove={() => {}}
+                            onConfirm={onConfirm}
+                        />
+                    ))}
+                </List>
 
                 <Dialog.Footer>
-                    <div className="flex items-center justify-end">
-                        <Button appearance="primary" onClick={onConfirm}>
-                            {t.confirm}
+                    <div className="flex items-center justify-end gap-2">
+                        <Button appearance="default" onClick={() => { onClose(); setList([]); }}>
+                            Annuller
+                        </Button>
+                        <Button appearance="primary" onClick={() => { onConfirm(); setList([]); }}>
+                            Opret valgte
                         </Button>
                     </div>
                 </Dialog.Footer>

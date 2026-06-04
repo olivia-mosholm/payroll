@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Button, Menu, Icon } from '@economic/taco';
+import { Button, Heading, Menu, Icon, Text } from '@economic/taco';
 import { EmptyState } from '../features/employee-onboarding/EmptyState';
 import { DropZone } from '../features/employee-onboarding/DropZone';
 import {
@@ -20,6 +20,7 @@ import { useVariantPaths } from '../paths';
 import { EmployeeEditDialogV2 } from '../features/employee-onboarding/EmployeeEditDialogV2';
 import { EmployeeEditDialogScheduleV1 } from '../features/employee-onboarding/EmployeeEditDialogScheduleV1';
 import { ProcessingCompletedDialog } from '../features/employee-onboarding/ProcessingCompletedDialog';
+import { EmployeeReviewDialog } from '../features/employee-onboarding/EmployeeReviewDialog';
 
 type DemoState = 'empty' | 'uploaded' | 'processed';
 
@@ -115,13 +116,8 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
         const createdEmployees = mockEmployees.slice(0, draftCount);
         window.setTimeout(() => {
             setProcessing(false);
-            // Stage the drafts in the summary modal; they are committed to
-            // the store only when the user clicks "Opret kladder".
-            setProcessedSummary({
-                mode: 'create',
-                files: filesSnapshot,
-                employees: createdEmployees,
-            });
+            setStoreEmployees(createdEmployees);
+            setReviewOpen(true);
         }, 2000);
     };
 
@@ -165,6 +161,7 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
      * button can open the file picker.
      */
     const emptyStateFileInputRef = useRef<HTMLInputElement>(null);
+    const [reviewOpen, setReviewOpen] = useState(false);
     const [processedSummary, setProcessedSummary] = useState<{
         mode: 'create' | 'append';
         files: UploadedFile[];
@@ -182,9 +179,7 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-normal leading-9 text-neutral-900">
-                    {da.page.title}
-                </h1>
+                <Heading level={1}>{da.page.title}</Heading>
             </div>
 
             {demoState === 'processed' ? (
@@ -224,44 +219,45 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                 </>
             ) : (
                 <>
-                    <div className="mx-auto w-full max-w-[568px] flex flex-col gap-4">
-                    <div className="rounded-[10px] p-6 flex flex-col gap-3 bg-white max-h-[calc(100vh-240px)] overflow-hidden">
+                    <div className="w-full flex flex-col items-center gap-4">
                         <EmptyState />
                         <DropZone
                             onFiles={handleFiles}
-                            description={da.empty.body}
+                            heading={da.empty.heading}
+                            description={
+                                <>
+                                    Træk filer hertil, eller vælg dem fra{' '}
+                                    <button
+                                        type="button"
+                                        className="underline"
+                                        onClick={() => emptyStateFileInputRef.current?.click()}
+                                    >
+                                        din computer
+                                    </button>
+                                    {' '}— Vi finder medarbejderdata og opretter udkast klar til gennemgang.
+                                </>
+                            }
                             hideBrowseButton
                         />
-                        <div className="flex justify-center gap-2">
-                            <Button appearance="primary">
-                                {da.actions.createManually}
-                            </Button>
-                            <Button
-                                appearance="default"
-                                onClick={() =>
-                                    emptyStateFileInputRef.current?.click()
-                                }
-                            >
-                                {da.dropzone.browse}
-                            </Button>
-                            <input
-                                ref={emptyStateFileInputRef}
-                                type="file"
-                                multiple
-                                accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                                className="hidden"
-                                onChange={(e) => {
-                                    const picked = Array.from(
-                                        e.target.files ?? [],
-                                    );
-                                    if (picked.length > 0) handleFiles(picked);
-                                    e.target.value = '';
-                                }}
-                                aria-hidden="true"
-                            />
-                        </div>
+                        <input
+                            ref={emptyStateFileInputRef}
+                            type="file"
+                            multiple
+                            accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                            className="hidden"
+                            onChange={(e) => {
+                                const picked = Array.from(e.target.files ?? []);
+                                if (picked.length > 0) handleFiles(picked);
+                                e.target.value = '';
+                            }}
+                            aria-hidden="true"
+                        />
+                        <Text size="md" color="secondary">eller</Text>
+                        <Button appearance="default">
+                            {da.actions.createManually}
+                        </Button>
                         {demoState === 'uploaded' && (
-                            <div className="mt-2 flex-1 min-h-0 overflow-hidden">
+                            <div className="w-full max-w-2xl">
                                 <UploadedFilesList
                                     files={files}
                                     processing={processing}
@@ -271,9 +267,15 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                             </div>
                         )}
                     </div>
-                    </div>
                 </>
             )}
+
+            <EmployeeReviewDialog
+                open={reviewOpen}
+                onClose={() => { setReviewOpen(false); setDemoState('processed'); }}
+                employees={employees}
+                files={files}
+            />
 
             <ImportDialog
                 open={importOpen}

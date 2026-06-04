@@ -1,26 +1,27 @@
 import { useRef } from 'react';
-import { Button, useDropTarget } from '@economic/taco';
+import { Button, Heading, Text, useDropTarget } from '@economic/taco';
 import { da } from '../../data/danishCopy';
 
 type Props = {
     onFiles: (files: File[]) => void;
+    /** Optional heading rendered inside the dashed drop zone. */
+    heading?: string;
     /**
-     * Optional descriptive paragraph rendered inside the dashed-border
-     * dropzone, above the title. Used on the empty-state page where the
-     * "Træk lønsedler, regneark eller billeder…" body copy moves into the
-     * dropzone rather than sitting above it.
+     * Optional descriptive content rendered inside the dashed-border
+     * dropzone. Accepts a ReactNode so callers can embed links/buttons.
      */
-    description?: string;
+    description?: React.ReactNode;
     /**
      * When true, suppress the inline "eller / Vælg filer" affordance. The
      * dropzone only handles drag-and-drop in this mode; the caller renders
-     * its own buttons above it.
+     * its own buttons below it.
      */
     hideBrowseButton?: boolean;
 };
 
 export function DropZone({
     onFiles,
+    heading,
     description,
     hideBrowseButton,
 }: Props) {
@@ -46,32 +47,29 @@ export function DropZone({
     return (
         <div
             {...dropHandlers}
-            className={`flex flex-col items-center justify-center py-6 rounded-[10px] border border-dashed transition-colors ${
+            className={`w-full max-w-2xl flex flex-col items-center justify-center pt-10 pb-20 px-8 rounded-[10px] border border-dashed transition-colors ${
                 isOver
-                    ? 'border-blue-500 bg-blue-100'
+                    ? 'border-blue-400 bg-blue-100'
                     : 'border-[#75A0F5] bg-transparent'
             }`}
             role="button"
             tabIndex={0}
             aria-label={da.dropzone.title}
         >
-            <p className="font-bold text-base leading-tight text-neutral-900 mb-0">
-                {da.dropzone.title}
-            </p>
+            {heading ? (
+                <Heading level={2} size="md" className="mb-4 text-center">{heading}</Heading>
+            ) : !description ? (
+                <Text bold>{da.dropzone.title}</Text>
+            ) : null}
             {description && (
-                <p className="text-sm leading-5 text-neutral-700 max-w-[350px] text-center mt-2 mb-0">
+                <Text size="md" color="secondary" as="p" className="max-w-[400px] text-center mt-3 mb-0">
                     {description}
-                </p>
+                </Text>
             )}
             {!hideBrowseButton && (
                 <>
-                    <p className="text-sm leading-tight text-neutral-900 mt-3 mb-3">
-                        {da.dropzone.separator}
-                    </p>
-                    <Button
-                        appearance="ghost"
-                        onClick={handleBrowseClick}
-                    >
+                    <Text size="sm" as="p" className="mt-3 mb-3">{da.dropzone.separator}</Text>
+                    <Button appearance="ghost" onClick={handleBrowseClick}>
                         {da.dropzone.browse}
                     </Button>
                 </>
