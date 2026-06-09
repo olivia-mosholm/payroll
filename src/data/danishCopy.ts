@@ -158,7 +158,7 @@ export const da = {
         },
         actions: {
             cancel: 'Annullér',
-            confirm: 'Opret/opdater kladder',
+            confirm: 'Opret/opdater valgte',
             back: 'Tilbage',
         },
     },

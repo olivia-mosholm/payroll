@@ -12,6 +12,7 @@ import {
     Button,
     Alert,
     Banner,
+    Heading,
     Icon,
     Input,
     Menu,
@@ -771,6 +772,21 @@ function BalancesTab() {
         { no: '19', item: t.rows.freeCar, amount: '0,00' },
         { no: '20', item: t.rows.multimedia, amount: '0,00' },
         { no: '21', item: t.rows.freeFoodLodging, amount: '0,00' },
+        { no: '26', item: 'Værdi af arbejdsgiverbetalt sundhedsforsikring', amount: '0,00' },
+        { no: '36', item: 'B-indkomst, der skal betales AM-bidrag', amount: '0,00' },
+        { no: '38', item: 'B-indkomst, der ikke skal betales AM-bidrag', amount: '0,00' },
+        { no: '46', item: 'ATP i alt', amount: '0,00' },
+        { no: '48', item: 'Skattefri rejse- og befordringsgodtgørelse, samt skattefri uddannelsesydelse', amount: '0,00' },
+        { no: '50', item: 'Værdi af fri helårsbolig', amount: '0,00' },
+        { no: '51', item: 'Værdi af fri sommerbolig', amount: '0,00' },
+        { no: '52', item: 'Værdi af fri lystbåd', amount: '0,00' },
+        { no: '53', item: 'Værdi af fri medie-/radiolicense', amount: '0,00' },
+        { no: '55', item: 'Værdi af andre personalegoder', amount: '0,00' },
+        { no: '56', item: 'Værdi af personalegoder, ikke omfattet af bagatelgrænse', amount: '0,00' },
+        { no: '69', item: 'Jubilæumsgratiale og fratrædelsesgodtgørelse', amount: '0,00' },
+        { no: '70', item: 'Del af jubilæumsgratiale og fratrædelsesgodtgørelse, som er indbetalt til virksomheds administreret pension', amount: '0,00' },
+        { no: '71', item: 'Del af Jubilæumsgratiale og fratrædelsesgodtgørelse, som er tingsgave', amount: '0,00' },
+        { no: '83', item: 'Søndage', amount: '0,00' },
     ];
     return (
         <div className="flex flex-col gap-4 pt-4">
@@ -1061,19 +1077,13 @@ export function EmployeeDetailPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <button
-                type="button"
-                onClick={() => navigate(backToList)}
-                className="inline-flex items-center gap-1 text-sm text-blue-500 hover:underline self-start"
-            >
+            <Button appearance="discrete" onClick={() => navigate(backToList)}>
                 <Icon name="chevron-left" />
                 {da.detailPage.back}
-            </button>
+            </Button>
 
             <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-normal leading-9 text-neutral-900">
-                    {employee.name}
-                </h1>
+                <Heading level={1}>{employee.name}</Heading>
                 <Badge color={STATUS_COLOR[employee.status]} subtle>
                     {STATUS_LABEL[employee.status]}
                 </Badge>
@@ -1109,9 +1119,8 @@ export function EmployeeDetailPage() {
                 <GrossYtdCard />
             </div>
 
-            <Tabs defaultId="overview">
+            <Tabs defaultId="balances">
                 <Tabs.List>
-                    <Tabs.Trigger id="overview">{tabs.overview}</Tabs.Trigger>
                     <Tabs.Trigger id="balances">{tabs.balances}</Tabs.Trigger>
                     <Tabs.Trigger id="holiday-savings">
                         {tabs.holidaySavings}
@@ -1121,9 +1130,6 @@ export function EmployeeDetailPage() {
                     </Tabs.Trigger>
                 </Tabs.List>
 
-                <Tabs.Content id="overview">
-                    <OverviewTab employee={employee} />
-                </Tabs.Content>
                 <Tabs.Content id="balances">
                     <BalancesTab />
                 </Tabs.Content>

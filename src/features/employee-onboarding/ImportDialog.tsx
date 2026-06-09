@@ -1,13 +1,84 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+    Banner,
     Dialog,
     Button,
     Spinner,
     Badge,
     Icon,
     IconButton,
+    Table3,
+    Text,
+    Tooltip,
+    useDropTarget,
+    type Color,
 } from '@economic/taco';
 import { DropZone } from './DropZone';
+import { EmptyStateIllustration } from './EmptyStateIllustration';
+
+// --- File type chips -------------------------------------------------------
+
+const FILE_TYPES = [
+    { label: 'Lønsedler · PDF',    bg: 'bg-red-100',    text: 'text-red-700',   abbr: 'PDF' },
+    { label: 'Excel · XLSX',       bg: 'bg-green-100',  text: 'text-green-700', abbr: 'XLS' },
+    { label: 'CSV',                bg: 'bg-green-100',  text: 'text-green-700', abbr: 'CSV' },
+    { label: 'Word · DOCX',        bg: 'bg-blue-100',   text: 'text-blue-700',  abbr: 'DOC' },
+    { label: 'Billeder · JPG, PNG',bg: 'bg-yellow-100', text: 'text-yellow-700',abbr: 'IMG' },
+];
+
+function ImportEmptyState({
+    onFiles,
+    browseRef,
+    intro,
+}: {
+    onFiles: (files: File[]) => void;
+    browseRef: React.RefObject<HTMLInputElement>;
+    intro: string;
+}) {
+    const handleDrop: React.DragEventHandler = (e) => {
+        e.preventDefault();
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) onFiles(files);
+    };
+    const [isOver, dropHandlers] = useDropTarget(handleDrop);
+
+    return (
+        <div className="flex flex-col gap-4 py-2">
+            <Text size="sm" color="secondary">{intro}</Text>
+            <div
+                {...dropHandlers}
+                className={`flex flex-col items-center justify-center py-10 px-8 rounded-[10px] border border-dashed transition-colors ${
+                    isOver ? 'border-blue-400 bg-blue-50' : 'border-[#75A0F5]'
+                }`}
+            >
+                <div className="mb-2">
+                    <EmptyStateIllustration />
+                </div>
+                <Text bold>Træk filerne direkte hertil</Text>
+                <Text size="sm" color="secondary" as="p" className="my-2">eller</Text>
+                <Button appearance="ghost" onClick={() => browseRef.current?.click()}>
+                    Vælg filer fra computer
+                </Button>
+                <Text size="sm" color="secondary" as="p" className="mt-10 mb-0 text-center">
+                    PDF · Excel · CSV · Word · JPG, PNG
+                </Text>
+            </div>
+            <input
+                ref={browseRef}
+                type="file"
+                multiple
+                accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                className="hidden"
+                onChange={(e) => {
+                    const picked = Array.from(e.target.files ?? []);
+                    if (picked.length > 0) onFiles(picked);
+                    e.target.value = '';
+                }}
+                aria-hidden="true"
+            />
+        </div>
+    );
+}
 import {
     FileRow,
     type UploadedFile,
@@ -435,6 +506,7 @@ function NewDraftCard({
 // --- Main component ------------------------------------------------------
 
 export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
+    const importBrowseRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<UploadedFile[]>([]);
     const [step, setStep] = useState<Step>('idle');
     const [preview, setPreview] = useState<Preview | null>(null);
@@ -566,7 +638,7 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
             onChange={(next) => {
                 onOpenChange(next);
             }}
-            size="md"
+            size={step === 'preview' ? 'md' : 'sm'}
             closeOnEscape={step !== 'analyzing'}
         >
             <Dialog.Content aria-labelledby={titleId}>
@@ -582,19 +654,13 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                 )}
 
                 {step === 'idle' && files.length === 0 && (
-                    <div className="flex flex-col gap-4 py-2">
-                        <p className="text-sm text-neutral-700">{t.intro}</p>
-                        <DropZone onFiles={handleFiles} />
-                    </div>
+                    <ImportEmptyState onFiles={handleFiles} browseRef={importBrowseRef} intro={t.intro} />
                 )}
 
                 {step === 'idle' && files.length > 0 && (
                     <div className="flex flex-col gap-4 py-2">
-                        <p className="text-sm text-neutral-700">
-                            {t.readySubtitle(files.length)}
-                        </p>
-                        <DropZone onFiles={handleFiles} />
-                        <ul className="flex flex-col gap-2 w-full max-w-none max-h-[40vh] overflow-y-auto">
+                        <ImportEmptyState onFiles={handleFiles} browseRef={importBrowseRef} intro={t.intro} />
+                        <ul className="flex flex-col gap-2 w-full max-h-[30vh] overflow-y-auto">
                             {files.map((f) => (
                                 <FileRow
                                     key={f.id}
@@ -608,15 +674,14 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                 )}
 
                 {step === 'preview' && preview && (
-                    <div className="max-h-[65vh] overflow-y-auto -mx-1 px-1">
-                        <PreviewBody
-                            preview={preview}
-                            resolutions={resolutions}
-                            removed={removed}
-                            onResolve={handleResolve}
-                            onRemove={handleRemovePreviewRow}
-                        />
-                    </div>
+                    <PreviewTable
+                        preview={preview}
+                        resolutions={resolutions}
+                        removed={removed}
+                        onResolve={handleResolve}
+                        onRemove={handleRemovePreviewRow}
+                        files={files}
+                    />
                 )}
 
                 <Dialog.Footer>
@@ -627,14 +692,13 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                             <Button appearance="default" onClick={handleClose}>
                                 {t.actions.cancel}
                             </Button>
-                            {files.length > 0 && (
-                                <Button
-                                    appearance="primary"
-                                    onClick={handleProcess}
-                                >
-                                    {t.processN(files.length)}
-                                </Button>
-                            )}
+                            <Button
+                                appearance="primary"
+                                disabled={files.length === 0}
+                                onClick={handleProcess}
+                            >
+                                Behandl filer
+                            </Button>
                         </div>
                     )}
 
@@ -657,6 +721,202 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                 </Dialog.Footer>
             </Dialog.Content>
         </Dialog>
+    );
+}
+
+// --- Preview as Table3 -----------------------------------------------------
+
+type PreviewTableRow = {
+    id: string;
+    name: string;
+    employeeNumber: string;
+    badge: { label: string; color: Color };
+    sourceFile: string;
+    matchLabel?: string;
+    type: 'update' | 'conflict' | 'draft';
+};
+
+function PreviewExpandedRow({
+    row,
+    preview,
+    resolutions,
+    onResolve,
+}: {
+    row: PreviewTableRow;
+    preview: Preview;
+    resolutions: Record<string, Record<string, ConflictResolution>>;
+    onResolve: (employeeId: string, field: string, choice: ConflictResolution) => void;
+}) {
+    if (row.type === 'update') {
+        const enrichment = preview.enrichments.find(e => e.employee.id === row.id);
+        if (!enrichment) return null;
+        return (
+            <div className="px-6 py-4 bg-neutral-50 flex flex-col gap-3">
+                <Text size="sm" bold>{da.importDialog.preview.newFieldsLabel}</Text>
+                <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+                    {enrichment.fields.map(f => (
+                        <div key={String(f.key)} className="flex flex-col gap-1">
+                            <Text size="sm" bold>{f.label}</Text>
+                            <div className="px-2 py-1.5 rounded bg-yellow-100 border border-yellow-200 text-sm">{f.value}</div>
+                            <Text size="sm" color="secondary">{enrichment.sourceFile}</Text>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    if (row.type === 'conflict') {
+        const conflict = preview.conflicts.find(c => c.employee.id === row.id);
+        if (!conflict) return null;
+        return (
+            <div className="px-6 py-4 bg-neutral-50 flex flex-col gap-4">
+                {conflict.fields.map(f => {
+                    const choice = resolutions[row.id]?.[String(f.key)] ?? 'override';
+                    return (
+                        <ConflictFieldGroup
+                            key={String(f.key)}
+                            employeeId={row.id}
+                            field={f}
+                            choice={choice}
+                            onResolve={(c) => onResolve(row.id, String(f.key), c)}
+                        />
+                    );
+                })}
+            </div>
+        );
+    }
+    if (row.type === 'draft') {
+        const creation = preview.creates.find(c => c.employee.id === row.id);
+        if (!creation) return null;
+        const f = da.editDialog.fields;
+        const emp = creation.employee;
+        const fields = [
+            { label: f.cpr, value: emp.cpr },
+            { label: f.employmentDate, value: emp.hireDate },
+            { label: f.fullName, value: emp.name },
+            emp.email ? { label: f.email, value: emp.email } : null,
+            emp.address ? { label: f.address, value: emp.address } : null,
+            emp.postCode ? { label: f.postCode, value: emp.postCode } : null,
+            emp.city ? { label: f.city, value: emp.city } : null,
+        ].filter(Boolean) as { label: string; value: string }[];
+        return (
+            <div className="px-6 py-4 bg-neutral-50 flex flex-col gap-4">
+                <Text bold size="sm">{da.editDialog.tabs.personalInfo}</Text>
+                <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+                    {fields.map(fd => (
+                        <div key={fd.label} className="flex flex-col gap-1">
+                            <Text size="sm" bold>{fd.label}</Text>
+                            <div className="px-2 py-1.5 rounded bg-yellow-100 border border-yellow-200 text-sm">{fd.value}</div>
+                            <Text size="sm" color="secondary">{creation.sourceFile}</Text>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    return null;
+}
+
+function PreviewTable({
+    preview,
+    resolutions,
+    removed,
+    onResolve,
+    onRemove,
+    files,
+}: {
+    preview: Preview;
+    resolutions: Record<string, Record<string, ConflictResolution>>;
+    removed: Set<string>;
+    onResolve: (employeeId: string, field: string, choice: ConflictResolution) => void;
+    onRemove: (employeeId: string) => void;
+    files: UploadedFile[];
+}) {
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const t = da.importDialog.preview;
+    const rows: PreviewTableRow[] = [
+        ...preview.enrichments.filter(e => !removed.has(e.employee.id)).map(e => ({
+            id: e.employee.id,
+            name: e.employee.name,
+            employeeNumber: e.employee.employeeNumber,
+            badge: { label: t.updatePill, color: 'blue' as Color },
+            sourceFile: e.sourceFile,
+            matchLabel: e.matchLabel,
+            type: 'update' as const,
+        })),
+        ...preview.conflicts.filter(c => !removed.has(c.employee.id)).map(c => ({
+            id: c.employee.id,
+            name: c.employee.name,
+            employeeNumber: c.employee.employeeNumber,
+            badge: { label: 'Konflikt', color: 'red' as Color },
+            sourceFile: c.sourceFile,
+            matchLabel: c.matchLabel,
+            type: 'conflict' as const,
+        })),
+        ...preview.creates.filter(c => !removed.has(c.employee.id)).map(c => ({
+            id: c.employee.id,
+            name: c.employee.name,
+            employeeNumber: c.employee.employeeNumber,
+            badge: { label: t.draftPill, color: 'orange' as Color },
+            sourceFile: c.sourceFile,
+            type: 'draft' as const,
+        })),
+    ];
+
+    const docsRead = files.length;
+    const total = rows.length;
+
+    return (
+        <div className="flex flex-col gap-3">
+            {/* Summary banner */}
+            <Banner state="success">
+                <Text size="sm">
+                    <strong>{docsRead} {docsRead === 1 ? 'dokument' : 'dokumenter'}</strong> læst · <strong>{total} {total === 1 ? 'medarbejder' : 'medarbejdere'}</strong> fundet
+                </Text>
+            </Banner>
+
+            <Table3<PreviewTableRow>
+                id="import-preview"
+                data={rows}
+                rowIdentityAccessor="id"
+                enableRowSelection
+                selectedRows={selectedIds}
+                onRowSelect={(_rows, ids) => setSelectedIds(ids)}
+                enableRowExpansion
+                rowExpansionRenderer={(row) => () => (
+                    <PreviewExpandedRow
+                        row={row}
+                        preview={preview}
+                        resolutions={resolutions}
+                        onResolve={onResolve}
+                    />
+                )}
+            >
+            <Table3.Column<PreviewTableRow>
+                accessor="employeeNumber"
+                header={da.table.no}
+                defaultWidth={70}
+            />
+            <Table3.Column<PreviewTableRow>
+                accessor="name"
+                header={da.table.name}
+                defaultWidth="grow"
+            />
+            <Table3.Column<PreviewTableRow>
+                accessor="id"
+                header="Kilde"
+                align="center"
+                defaultWidth={80}
+                renderer={({ row }) => (
+                    <Tooltip placement="left" title={row.sourceFile}>
+                        <span className="flex items-center justify-center w-full h-full text-neutral-500 hover:text-neutral-900 cursor-default">
+                            <Icon name="zoom" />
+                        </span>
+                    </Tooltip>
+                )}
+            />
+        </Table3>
+        </div>
     );
 }
 

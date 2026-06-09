@@ -6,6 +6,8 @@ type Props = {
     onFiles: (files: File[]) => void;
     /** Optional heading rendered inside the dashed drop zone. */
     heading?: string;
+    /** Optional illustration rendered above the heading/description. */
+    illustration?: React.ReactNode;
     /**
      * Optional descriptive content rendered inside the dashed-border
      * dropzone. Accepts a ReactNode so callers can embed links/buttons.
@@ -22,6 +24,7 @@ type Props = {
 export function DropZone({
     onFiles,
     heading,
+    illustration,
     description,
     hideBrowseButton,
 }: Props) {
@@ -56,9 +59,10 @@ export function DropZone({
             tabIndex={0}
             aria-label={da.dropzone.title}
         >
+            {illustration && <div className="mb-4">{illustration}</div>}
             {heading ? (
                 <Heading level={2} size="md" className="mb-4 text-center">{heading}</Heading>
-            ) : !description ? (
+            ) : !description && !illustration ? (
                 <Text bold>{da.dropzone.title}</Text>
             ) : null}
             {description && (

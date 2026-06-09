@@ -198,7 +198,7 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                                         >
                                             <span className="inline-flex items-center justify-between gap-3 w-full">
                                                 <span>{da.actions.quickCreate}</span>
-                                                <Icon name="ai-stars" />
+                                                <Icon name="import" />
                                             </span>
                                         </Menu.Item>
                                         <Menu.Item disabled>

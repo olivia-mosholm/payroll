@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Banner, Button, Dialog, Heading, Icon, Input, Table3, Text, Tooltip } from '@economic/taco';
+import heroImg from '../../assets/hero.png';
 import { type Employee } from '../../data/mockEmployees';
 import { type UploadedFile } from './UploadedFilesList';
 import { da } from '../../data/danishCopy';
@@ -7,15 +8,17 @@ import { da } from '../../data/danishCopy';
 
 function FieldBlock({ label, value, source = 'Lønsedler_marts_2026.pdf' }: { label: string; value?: string; source?: string }) {
     if (!value) return null;
+    const [edited, setEdited] = useState(false);
     return (
         <div className="flex flex-col gap-1">
             <Text size="sm" bold>{label}</Text>
             <Input
                 defaultValue={value}
                 aria-label={label}
-                className="bg-yellow-100 border-yellow-400"
+                className={edited ? undefined : 'bg-yellow-100 border-yellow-400'}
+                onChange={() => setEdited(true)}
             />
-            <Text size="sm" color="secondary">{source}</Text>
+            {!edited && <Text size="sm" color="secondary">{source}</Text>}
         </div>
     );
 }
@@ -104,7 +107,19 @@ export function EmployeeReviewDialog({ open, onClose, employees, files = [] }: P
                         align="center"
                         defaultWidth={80}
                         renderer={({ row }) => (
-                            <Tooltip content={`Lønsedler_marts_2026.pdf · ${row.employeeNumber}`}>
+                            <Tooltip
+                                placement="left"
+                                title={
+                                    <div className="flex flex-col gap-1 p-1">
+                                        <img
+                                            src={heroImg}
+                                            alt="Dokument preview"
+                                            className="w-48 h-auto rounded object-cover"
+                                        />
+                                        <Text size="sm">Lønsedler_marts_2026.pdf</Text>
+                                    </div>
+                                }
+                            >
                                 <span className="flex items-center justify-center w-full h-full text-neutral-500 hover:text-neutral-900 cursor-default">
                                     <Icon name="zoom" />
                                 </span>
