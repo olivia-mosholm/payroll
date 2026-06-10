@@ -14,7 +14,6 @@ import {
     type Color,
 } from '@economic/taco';
 import { DropZone } from './DropZone';
-import { EmptyStateIllustration } from './EmptyStateIllustration';
 
 // Fake file used for usability testing — clicking browse or dropping any
 // file always resolves to this preset so testers never need real documents.
@@ -49,21 +48,17 @@ function ImportEmptyState({
             <Text size="sm" color="secondary">{intro}</Text>
             <div
                 {...dropHandlers}
-                className={`flex flex-col items-center justify-center py-10 px-8 rounded-[10px] border border-dashed transition-colors ${
-                    isOver ? 'border-blue-400 bg-blue-50' : 'border-[#75A0F5]'
+                className={`flex flex-col items-center justify-center gap-3 py-10 px-8 rounded-[10px] border border-dashed transition-colors ${
+                    isOver ? 'border-blue-400 bg-blue-50' : 'border-grey-400'
                 }`}
             >
-                <div className="mb-2">
-                    <EmptyStateIllustration />
-                </div>
-                <Text bold>Træk filerne direkte hertil</Text>
-                <Text size="sm" color="secondary" as="p" className="my-2">eller</Text>
-                <Button appearance="ghost" onClick={() => onFiles([FAKE_UPLOAD])}>
-                    Vælg filer fra computer
+                <span className="text-neutral-400">
+                    <Icon name="import" size="lg" />
+                </span>
+                <Text size="sm" color="secondary">PDF · Excel · Word · JPG, PNG</Text>
+                <Button appearance="default" onClick={() => onFiles([FAKE_UPLOAD])}>
+                    Vælg filer
                 </Button>
-                <Text size="sm" color="secondary" as="p" className="mt-10 mb-0 text-center">
-                    PDF · Excel · CSV · Word · JPG, PNG
-                </Text>
             </div>
         </div>
     );
