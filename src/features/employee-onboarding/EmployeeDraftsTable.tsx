@@ -1,4 +1,4 @@
-import { Table3, Badge, IconButton, type Color } from '@economic/taco';
+import { Table3, Badge, Button, IconButton, type Color } from '@economic/taco';
 import type { Employee, EmployeeStatus } from '../../data/mockEmployees';
 import { da } from '../../data/danishCopy';
 
@@ -7,6 +7,8 @@ type Props = {
     onRowClick?: (employee: Employee) => void;
     /** Fired when the pencil icon revealed on row hover is clicked. */
     onEditClick?: (employee: Employee) => void;
+    /** Fired when the Gennemgå button on a pending row is clicked. */
+    onReviewClick?: (employee: Employee) => void;
 };
 
 const STATUS_COLOR: Record<EmployeeStatus, Color> = {
@@ -33,6 +35,7 @@ export function EmployeeDraftsTable({
     employees,
     onRowClick,
     onEditClick,
+    onReviewClick,
 }: Props) {
     return (
         <Table3<Employee>
@@ -51,6 +54,14 @@ export function EmployeeDraftsTable({
                 accessor="name"
                 header={da.table.name}
                 defaultWidth="grow"
+                renderer={({ row }) => (
+                    <span className="inline-flex items-center gap-2">
+                        {row.status === 'pending' && (
+                            <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" aria-label="Afventer gennemgang" />
+                        )}
+                        {row.name}
+                    </span>
+                )}
             />
             <Table3.Column<Employee>
                 accessor="payPeriod"
@@ -96,23 +107,34 @@ export function EmployeeDraftsTable({
                 accessor="id"
                 header=""
                 align="right"
-                defaultWidth={80}
+                defaultWidth={120}
                 renderer={({ row }) => (
                     <span
-                        className="inline-flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity"
+                        className="inline-flex items-center gap-1"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <IconButton
-                            icon="edit"
-                            appearance="discrete"
-                            aria-label={da.detailPage.edit}
-                            onClick={() => onEditClick?.(row)}
-                        />
-                        <IconButton
-                            icon="ellipsis-vertical"
-                            appearance="discrete"
-                            aria-label={da.actions.more}
-                        />
+                        {row.status === 'pending' ? (
+                            <Button
+                                appearance="default"
+                                onClick={() => onReviewClick?.(row)}
+                            >
+                                Gennemgå
+                            </Button>
+                        ) : (
+                            <span className="inline-flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity">
+                                <IconButton
+                                    icon="edit"
+                                    appearance="discrete"
+                                    aria-label={da.detailPage.edit}
+                                    onClick={() => onEditClick?.(row)}
+                                />
+                                <IconButton
+                                    icon="ellipsis-vertical"
+                                    appearance="discrete"
+                                    aria-label={da.actions.more}
+                                />
+                            </span>
+                        )}
                     </span>
                 )}
             />

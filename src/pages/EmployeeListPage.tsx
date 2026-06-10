@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Button, Heading, Menu, Icon, Text, Badge } from '@economic/taco';
+import { Button, Heading, Menu, Icon } from '@economic/taco';
 import { EmptyState } from '../features/employee-onboarding/EmptyState';
 import { EmployeeDraftsTable } from '../features/employee-onboarding/EmployeeDraftsTable';
 import { ImportDialog } from '../features/employee-onboarding/ImportDialog';
@@ -36,15 +36,6 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
     const [modalEmployee, setModalEmployee] = useState<Employee | null>(null);
     const [editPenEmployee, setEditPenEmployee] = useState<Employee | null>(null);
     const [reviewEmployee, setReviewEmployee] = useState<Employee | null>(null);
-
-    const pendingEmployees = useMemo(
-        () => employees.filter((e) => e.status === 'pending'),
-        [employees],
-    );
-    const activeEmployees = useMemo(
-        () => employees.filter((e) => e.status !== 'pending'),
-        [employees],
-    );
 
     const handleImportProcessed = () => {
         setDemoState('processed');
@@ -109,59 +100,11 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                         </Button>
                     </div>
 
-                    {pendingEmployees.length > 0 && (
-                        <div className="flex flex-col gap-3">
-                            <div className="flex items-center gap-2">
-                                <Heading level={2} size="sm">
-                                    Kladder til gennemgang
-                                </Heading>
-                                <Badge color="orange" subtle>
-                                    {pendingEmployees.length}
-                                </Badge>
-                            </div>
-                            <div className="flex flex-col divide-y divide-grey-200 border border-grey-200 rounded-lg overflow-hidden">
-                                {pendingEmployees.map((emp) => (
-                                    <div
-                                        key={emp.id}
-                                        className="flex items-center justify-between px-4 py-3 bg-white"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-orange-100 text-neutral-900 shrink-0">
-                                                <Icon name="person" />
-                                            </span>
-                                            <div className="flex flex-col">
-                                                <Text bold size="sm">
-                                                    {emp.name}
-                                                </Text>
-                                                <Text
-                                                    size="sm"
-                                                    color="secondary"
-                                                >
-                                                    Nr. {emp.employeeNumber}
-                                                    {emp.hireDate
-                                                        ? ` · Ansættelse ${emp.hireDate}`
-                                                        : ''}
-                                                </Text>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            appearance="default"
-                                            onClick={() =>
-                                                setReviewEmployee(emp)
-                                            }
-                                        >
-                                            Gennemgå
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     <EmployeeDraftsTable
-                        employees={activeEmployees}
+                        employees={employees}
                         onRowClick={handleRowClick}
                         onEditClick={setEditPenEmployee}
+                        onReviewClick={setReviewEmployee}
                     />
                 </>
             )}
