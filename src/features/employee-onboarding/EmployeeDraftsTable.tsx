@@ -55,11 +55,11 @@ export function EmployeeDraftsTable({
                 header={da.table.name}
                 defaultWidth="grow"
                 renderer={({ row }) => (
-                    <span className="flex items-center gap-2 w-full">
+                    <span>
+                        {row.name}
                         {row.status === 'pending' && (
-                            <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" aria-label="Afventer gennemgang" />
+                            <span className="inline-block ml-2 w-2 h-2 rounded-full bg-orange-400 align-middle" aria-label="Afventer gennemgang" />
                         )}
-                        <span>{row.name}</span>
                     </span>
                 )}
             />
@@ -110,31 +110,20 @@ export function EmployeeDraftsTable({
                 defaultWidth={120}
                 renderer={({ row }) => (
                     <span
-                        className="inline-flex items-center gap-1"
+                        className="inline-flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {row.status === 'pending' ? (
-                            <Button
-                                appearance="default"
-                                onClick={() => onReviewClick?.(row)}
-                            >
-                                Gennemgå
-                            </Button>
-                        ) : (
-                            <span className="inline-flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity">
-                                <IconButton
-                                    icon="edit"
-                                    appearance="discrete"
-                                    aria-label={da.detailPage.edit}
-                                    onClick={() => onEditClick?.(row)}
-                                />
-                                <IconButton
-                                    icon="ellipsis-vertical"
-                                    appearance="discrete"
-                                    aria-label={da.actions.more}
-                                />
-                            </span>
-                        )}
+                        <IconButton
+                            icon="edit"
+                            appearance="discrete"
+                            aria-label={da.detailPage.edit}
+                            onClick={() => row.status === 'pending' ? onReviewClick?.(row) : onEditClick?.(row)}
+                        />
+                        <IconButton
+                            icon="ellipsis-vertical"
+                            appearance="discrete"
+                            aria-label={da.actions.more}
+                        />
                     </span>
                 )}
             />

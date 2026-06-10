@@ -7,6 +7,7 @@ import { ImportDialog } from '../features/employee-onboarding/ImportDialog';
 import { mockEmployees, type Employee } from '../data/mockEmployees';
 import {
     setEmployees as setStoreEmployees,
+    getEmployees,
     useEmployees,
 } from '../store/employeesStore';
 import { da } from '../data/danishCopy';
@@ -113,7 +114,7 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                 open={importOpen}
                 onOpenChange={(next) => {
                     setImportOpen(next);
-                    if (!next && employees.length > 0) {
+                    if (!next && getEmployees().length > 0) {
                         setDemoState('processed');
                     }
                 }}

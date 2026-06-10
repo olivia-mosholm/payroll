@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-    Banner,
     Dialog,
     Button,
     Spinner,
@@ -129,7 +128,7 @@ type Props = {
      * the parent does not need to do anything. The callback is preserved
      * for backwards compatibility with the empty-state drop flow.
      */
-    onProcessed?: (info?: { files: UploadedFile[]; employees: Employee[] }) => void;
+    onProcessed?: (info?: { firstEmployee: Employee | null }) => void;
 };
 
 function nextId() {
@@ -598,7 +597,10 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
             appendEmployees(newDrafts.map((c) => c.employee));
         }
         importBatch += newDrafts.length;
-        onProcessed?.();
+        // Pass the first newly created employee so the parent can open
+        // the review dialog immediately after the modal closes.
+        const firstNew = newDrafts[0]?.employee ?? null;
+        onProcessed?.({ firstEmployee: firstNew });
         onOpenChange(false);
     };
 
@@ -625,7 +627,7 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
             closeOnEscape={step !== 'analyzing'}
         >
             <Dialog.Content aria-labelledby={titleId}>
-                <Dialog.Title id={titleId}>{t.title}</Dialog.Title>
+                <Dialog.Title id={titleId} className="!text-left">{t.title}</Dialog.Title>
 
                 {step === 'analyzing' && (
                     <div className="flex flex-col items-center justify-center gap-3 py-12">
@@ -680,7 +682,7 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                                 disabled={files.length === 0}
                                 onClick={handleProcess}
                             >
-                                Behandl filer
+                                Indlæs filer
                             </Button>
                         </div>
                     )}
@@ -851,12 +853,9 @@ function PreviewTable({
 
     return (
         <div className="flex flex-col gap-3">
-            {/* Summary banner */}
-            <Banner state="success">
-                <Text size="sm">
-                    <strong>{docsRead} {docsRead === 1 ? 'dokument' : 'dokumenter'}</strong> læst · <strong>{total} {total === 1 ? 'medarbejder' : 'medarbejdere'}</strong> fundet
-                </Text>
-            </Banner>
+            <Text size="sm" color="secondary">
+                <strong className="text-neutral-900">{docsRead} {docsRead === 1 ? 'dokument' : 'dokumenter'}</strong> læst · <strong className="text-neutral-900">{total} {total === 1 ? 'medarbejder' : 'medarbejdere'}</strong> fundet
+            </Text>
 
             <Table3<PreviewTableRow>
                 id="import-preview"
@@ -865,38 +864,11 @@ function PreviewTable({
                 enableRowSelection
                 selectedRows={selectedIds}
                 onRowSelect={(_rows, ids) => setSelectedIds(ids)}
-                enableRowExpansion
-                rowExpansionRenderer={(row) => () => (
-                    <PreviewExpandedRow
-                        row={row}
-                        preview={preview}
-                        resolutions={resolutions}
-                        onResolve={onResolve}
-                    />
-                )}
             >
-            <Table3.Column<PreviewTableRow>
-                accessor="employeeNumber"
-                header={da.table.no}
-                defaultWidth={70}
-            />
             <Table3.Column<PreviewTableRow>
                 accessor="name"
                 header={da.table.name}
                 defaultWidth="grow"
-            />
-            <Table3.Column<PreviewTableRow>
-                accessor="id"
-                header="Kilde"
-                align="center"
-                defaultWidth={80}
-                renderer={({ row }) => (
-                    <Tooltip placement="left" title={row.sourceFile}>
-                        <span className="flex items-center justify-center w-full h-full text-neutral-500 hover:text-neutral-900 cursor-default">
-                            <Icon name="zoom" />
-                        </span>
-                    </Tooltip>
-                )}
             />
         </Table3>
         </div>

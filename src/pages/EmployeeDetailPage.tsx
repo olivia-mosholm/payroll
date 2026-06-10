@@ -1077,7 +1077,7 @@ export function EmployeeDetailPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <Button appearance="discrete" onClick={() => navigate(backToList)}>
+            <Button appearance="discrete" className="self-start" onClick={() => navigate(backToList)}>
                 <Icon name="chevron-left" />
                 {da.detailPage.back}
             </Button>
