@@ -55,11 +55,11 @@ export function EmployeeDraftsTable({
                 header={da.table.name}
                 defaultWidth="grow"
                 renderer={({ row }) => (
-                    <span className="inline-flex items-center gap-2">
+                    <span className="flex items-center gap-2 w-full">
                         {row.status === 'pending' && (
                             <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" aria-label="Afventer gennemgang" />
                         )}
-                        {row.name}
+                        <span>{row.name}</span>
                     </span>
                 )}
             />
