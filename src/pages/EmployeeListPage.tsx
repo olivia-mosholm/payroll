@@ -1,39 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Button, Heading, Menu, Icon, Text } from '@economic/taco';
+import { Button, Heading, Menu, Icon, Text, Badge } from '@economic/taco';
 import { EmptyState } from '../features/employee-onboarding/EmptyState';
-import { DropZone } from '../features/employee-onboarding/DropZone';
-import {
-    UploadedFilesList,
-    type UploadedFile,
-} from '../features/employee-onboarding/UploadedFilesList';
 import { EmployeeDraftsTable } from '../features/employee-onboarding/EmployeeDraftsTable';
 import { ImportDialog } from '../features/employee-onboarding/ImportDialog';
 import { mockEmployees, type Employee } from '../data/mockEmployees';
 import {
     setEmployees as setStoreEmployees,
-    appendEmployees as appendStoreEmployees,
     useEmployees,
 } from '../store/employeesStore';
 import { da } from '../data/danishCopy';
 import { useVariantPaths } from '../paths';
 import { EmployeeEditDialogV2 } from '../features/employee-onboarding/EmployeeEditDialogV2';
 import { EmployeeEditDialogScheduleV1 } from '../features/employee-onboarding/EmployeeEditDialogScheduleV1';
-import { ProcessingCompletedDialog } from '../features/employee-onboarding/ProcessingCompletedDialog';
-import { EmployeeReviewDialog } from '../features/employee-onboarding/EmployeeReviewDialog';
 
-type DemoState = 'empty' | 'uploaded' | 'processed';
-
-const VALID_STATES: DemoState[] = ['empty', 'uploaded', 'processed'];
-
-const PRESET_FILES: UploadedFile[] = [
-    { id: 'file-1', name: 'Lønsedler_marts_2026.pdf', size: 248_320 },
-    { id: 'file-2', name: 'Medarbejdere_oversigt.xlsx', size: 52_140 },
-];
-
-function nextFileId() {
-    return `file-${Math.random().toString(36).slice(2, 9)}`;
-}
+type DemoState = 'empty' | 'processed';
 
 type Props = {
     editMode?: 'page' | 'modal' | 'schedule';
@@ -44,129 +25,30 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
     const variantPaths = useVariantPaths();
     const [searchParams, setSearchParams] = useSearchParams();
     const stateParam = searchParams.get('state') as DemoState | null;
-    const initialState: DemoState = stateParam && VALID_STATES.includes(stateParam)
-        ? stateParam
-        : 'empty';
+    const initialState: DemoState =
+        stateParam === 'processed' ? 'processed' : 'empty';
 
     const [demoState, setDemoState] = useState<DemoState>(initialState);
-    const [files, setFiles] = useState<UploadedFile[]>(
-        initialState === 'uploaded' || initialState === 'processed' ? PRESET_FILES : []
-    );
-    const [processing, setProcessing] = useState(false);
     const employees = useEmployees();
     const [importOpen, setImportOpen] = useState(false);
     const navigate = useNavigate();
 
-    // Seed the store from the demo state on first mount.
-    useEffect(() => {
-        if (initialState === 'processed' && employees.length === 0) {
-            setStoreEmployees(mockEmployees);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        if (stateParam !== demoState) {
-            const params = new URLSearchParams(searchParams);
-            if (demoState === 'empty') params.delete('state');
-            else params.set('state', demoState);
-            setSearchParams(params, { replace: true });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [demoState]);
-
-    const visibleEmployees = useMemo(
-        () => (demoState === 'processed' ? employees : []),
-        [demoState, employees]
-    );
-
-    const handleFiles = (newFiles: File[]) => {
-        const mapped: UploadedFile[] = newFiles.map((f) => ({
-            id: nextFileId(),
-            name: f.name,
-            size: f.size,
-        }));
-        setFiles((prev) => [...prev, ...mapped]);
-        setDemoState('uploaded');
-    };
-
-    const handleRemove = (id: string) => {
-        setFiles((prev) => {
-            const next = prev.filter((f) => f.id !== id);
-            if (next.length === 0) setDemoState('empty');
-            return next;
-        });
-    };
-
-    const handleProcess = () => {
-        setProcessing(true);
-        const filesSnapshot = files;
-        // Every dropped file produces a draft. Prototype always shows at
-        // least 3 drafts when there is any source file, so the test
-        // experience is consistent.
-        const MIN_DRAFTS = 3;
-        const fileCount = filesSnapshot.length;
-        const draftCount =
-            fileCount === 0
-                ? 0
-                : Math.min(
-                      mockEmployees.length,
-                      Math.max(fileCount, MIN_DRAFTS)
-                  );
-        const createdEmployees = mockEmployees.slice(0, draftCount);
-        window.setTimeout(() => {
-            setProcessing(false);
-            setStoreEmployees(createdEmployees);
-            setReviewOpen(true);
-        }, 2000);
-    };
-
-    const handleConfirmCreate = () => {
-        if (!processedSummary) return;
-        if (processedSummary.mode === 'create') {
-            setStoreEmployees(processedSummary.employees);
-            setDemoState('processed');
-        } else {
-            appendStoreEmployees(processedSummary.employees);
-        }
-        setProcessedSummary(null);
-    };
-
-    // Dialog now handles appending itself; this is a no-op confirmation hook.
-    const handleImportComplete = (
-        info?: { files: UploadedFile[]; employees: Employee[] }
-    ) => {
-        if (info) {
-            setProcessedSummary({
-                mode: 'append',
-                files: info.files,
-                employees: info.employees,
-            });
-        }
-    };
-
     const [modalEmployee, setModalEmployee] = useState<Employee | null>(null);
-    /**
-     * Independent of `modalEmployee`: when the pencil icon revealed on row
-     * hover is clicked, we always open the V2 edit dialog regardless of the
-     * variant's row-click behaviour. Tracked separately so it doesn't
-     * collide with the schedule dialog on /scheduled-changes-v1.
-     */
-    const [editPenEmployee, setEditPenEmployee] = useState<Employee | null>(
-        null,
+    const [editPenEmployee, setEditPenEmployee] = useState<Employee | null>(null);
+    const [reviewEmployee, setReviewEmployee] = useState<Employee | null>(null);
+
+    const pendingEmployees = useMemo(
+        () => employees.filter((e) => e.status === 'pending'),
+        [employees],
     );
-    /**
-     * The empty-state "Vælg filer" button lives outside the DropZone
-     * now, so we keep a separate hidden file input + ref so clicking the
-     * button can open the file picker.
-     */
-    const emptyStateFileInputRef = useRef<HTMLInputElement>(null);
-    const [reviewOpen, setReviewOpen] = useState(false);
-    const [processedSummary, setProcessedSummary] = useState<{
-        mode: 'create' | 'append';
-        files: UploadedFile[];
-        employees: Employee[];
-    } | null>(null);
+    const activeEmployees = useMemo(
+        () => employees.filter((e) => e.status !== 'pending'),
+        [employees],
+    );
+
+    const handleImportProcessed = () => {
+        setDemoState('processed');
+    };
 
     const handleRowClick = (employee: Employee) => {
         if (isModalMode) {
@@ -182,7 +64,22 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                 <Heading level={1}>{da.page.title}</Heading>
             </div>
 
-            {demoState === 'processed' ? (
+            {demoState === 'empty' ? (
+                <div className="flex flex-col items-center gap-6 pt-8">
+                    <EmptyState />
+                    <div className="flex gap-3">
+                        <Button appearance="default">
+                            {da.actions.createManually}
+                        </Button>
+                        <Button
+                            appearance="primary"
+                            onClick={() => setImportOpen(true)}
+                        >
+                            {da.actions.quickCreate}
+                        </Button>
+                    </div>
+                </div>
+            ) : (
                 <>
                     <div className="flex items-center gap-2">
                         <Button appearance="primary">
@@ -211,89 +108,82 @@ export function EmployeeListPage({ editMode = 'page' }: Props = {}) {
                             {da.actions.more}
                         </Button>
                     </div>
+
+                    {pendingEmployees.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
+                                <Heading level={2} size="sm">
+                                    Kladder til gennemgang
+                                </Heading>
+                                <Badge color="orange" subtle>
+                                    {pendingEmployees.length}
+                                </Badge>
+                            </div>
+                            <div className="flex flex-col divide-y divide-grey-200 border border-grey-200 rounded-lg overflow-hidden">
+                                {pendingEmployees.map((emp) => (
+                                    <div
+                                        key={emp.id}
+                                        className="flex items-center justify-between px-4 py-3 bg-white"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-orange-100 text-neutral-900 shrink-0">
+                                                <Icon name="person" />
+                                            </span>
+                                            <div className="flex flex-col">
+                                                <Text bold size="sm">
+                                                    {emp.name}
+                                                </Text>
+                                                <Text
+                                                    size="sm"
+                                                    color="secondary"
+                                                >
+                                                    Nr. {emp.employeeNumber}
+                                                    {emp.hireDate
+                                                        ? ` · Ansættelse ${emp.hireDate}`
+                                                        : ''}
+                                                </Text>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            appearance="default"
+                                            onClick={() =>
+                                                setReviewEmployee(emp)
+                                            }
+                                        >
+                                            Gennemgå
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <EmployeeDraftsTable
-                        employees={visibleEmployees}
+                        employees={activeEmployees}
                         onRowClick={handleRowClick}
                         onEditClick={setEditPenEmployee}
                     />
                 </>
-            ) : (
-                <>
-                    <div className="w-full flex flex-col items-center gap-4">
-                        <EmptyState />
-                        <DropZone
-                            onFiles={handleFiles}
-                            heading={da.empty.heading}
-                            description={
-                                <>
-                                    Træk filer hertil, eller vælg dem fra{' '}
-                                    <button
-                                        type="button"
-                                        className="underline"
-                                        onClick={() => emptyStateFileInputRef.current?.click()}
-                                    >
-                                        din computer
-                                    </button>
-                                    {' '}— Vi finder medarbejderdata og opretter udkast klar til gennemgang.
-                                </>
-                            }
-                            hideBrowseButton
-                        />
-                        <input
-                            ref={emptyStateFileInputRef}
-                            type="file"
-                            multiple
-                            accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                            className="hidden"
-                            onChange={(e) => {
-                                const picked = Array.from(e.target.files ?? []);
-                                if (picked.length > 0) handleFiles(picked);
-                                e.target.value = '';
-                            }}
-                            aria-hidden="true"
-                        />
-                        <Text size="md" color="secondary">eller</Text>
-                        <Button appearance="default">
-                            {da.actions.createManually}
-                        </Button>
-                        {demoState === 'uploaded' && (
-                            <div className="w-full max-w-2xl">
-                                <UploadedFilesList
-                                    files={files}
-                                    processing={processing}
-                                    onRemove={handleRemove}
-                                    onProcess={handleProcess}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </>
             )}
-
-            <EmployeeReviewDialog
-                open={reviewOpen}
-                onClose={() => { setReviewOpen(false); setDemoState('processed'); }}
-                employees={employees}
-                files={files}
-            />
 
             <ImportDialog
                 open={importOpen}
-                onOpenChange={setImportOpen}
-                onProcessed={handleImportComplete}
+                onOpenChange={(next) => {
+                    setImportOpen(next);
+                    if (!next && employees.length > 0) {
+                        setDemoState('processed');
+                    }
+                }}
+                onProcessed={handleImportProcessed}
             />
 
-            <ProcessingCompletedDialog
-                open={processedSummary !== null}
-                onClose={() => setProcessedSummary(null)}
-                onConfirm={handleConfirmCreate}
-                files={processedSummary?.files ?? []}
-                employees={processedSummary?.employees ?? []}
+            {/* Review dialog: opened by "Gennemgå" per draft row */}
+            <EmployeeEditDialogV2
+                employee={reviewEmployee}
+                onClose={() => setReviewEmployee(null)}
             />
 
-            {/* V2 edit dialog: opened either by row click in modal mode OR
-                by the pencil icon on any variant. The pen state wins so the
-                schedule dialog doesn't accidentally show next to it. */}
+            {/* Edit dialog: opened by pencil icon or row click in modal mode */}
             <EmployeeEditDialogV2
                 employee={
                     editPenEmployee ??

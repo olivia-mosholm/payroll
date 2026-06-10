@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { updateEmployee } from '../../store/employeesStore';
 import {
     Dialog,
     Tabs,
@@ -684,7 +685,10 @@ export function EmployeeEditDialogV2({ employee, onClose }: Props) {
         if (i >= 0 && i < TAB_ORDER.length - 1) {
             setActiveTab(TAB_ORDER[i + 1]);
         } else {
-            // Last tab — Gem closes.
+            // Last tab — activate pending employee and close.
+            if (employee && employee.status === 'pending') {
+                updateEmployee(employee.id, { status: 'active' });
+            }
             onClose();
         }
     };

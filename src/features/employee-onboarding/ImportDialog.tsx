@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Banner,
     Dialog,
@@ -16,6 +16,10 @@ import {
 import { DropZone } from './DropZone';
 import { EmptyStateIllustration } from './EmptyStateIllustration';
 
+// Fake file used for usability testing — clicking browse or dropping any
+// file always resolves to this preset so testers never need real documents.
+const FAKE_UPLOAD = new File([''], 'Lønsedler_marts_2026.pdf', { type: 'application/pdf' });
+
 // --- File type chips -------------------------------------------------------
 
 const FILE_TYPES = [
@@ -28,17 +32,15 @@ const FILE_TYPES = [
 
 function ImportEmptyState({
     onFiles,
-    browseRef,
     intro,
 }: {
     onFiles: (files: File[]) => void;
-    browseRef: React.RefObject<HTMLInputElement>;
     intro: string;
 }) {
     const handleDrop: React.DragEventHandler = (e) => {
         e.preventDefault();
-        const files = Array.from(e.dataTransfer.files);
-        if (files.length > 0) onFiles(files);
+        // Usability test: always resolve to the fake preset file.
+        onFiles([FAKE_UPLOAD]);
     };
     const [isOver, dropHandlers] = useDropTarget(handleDrop);
 
@@ -56,26 +58,13 @@ function ImportEmptyState({
                 </div>
                 <Text bold>Træk filerne direkte hertil</Text>
                 <Text size="sm" color="secondary" as="p" className="my-2">eller</Text>
-                <Button appearance="ghost" onClick={() => browseRef.current?.click()}>
+                <Button appearance="ghost" onClick={() => onFiles([FAKE_UPLOAD])}>
                     Vælg filer fra computer
                 </Button>
                 <Text size="sm" color="secondary" as="p" className="mt-10 mb-0 text-center">
                     PDF · Excel · CSV · Word · JPG, PNG
                 </Text>
             </div>
-            <input
-                ref={browseRef}
-                type="file"
-                multiple
-                accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                className="hidden"
-                onChange={(e) => {
-                    const picked = Array.from(e.target.files ?? []);
-                    if (picked.length > 0) onFiles(picked);
-                    e.target.value = '';
-                }}
-                aria-hidden="true"
-            />
         </div>
     );
 }
@@ -506,7 +495,6 @@ function NewDraftCard({
 // --- Main component ------------------------------------------------------
 
 export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
-    const importBrowseRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<UploadedFile[]>([]);
     const [step, setStep] = useState<Step>('idle');
     const [preview, setPreview] = useState<Preview | null>(null);
@@ -654,12 +642,12 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
                 )}
 
                 {step === 'idle' && files.length === 0 && (
-                    <ImportEmptyState onFiles={handleFiles} browseRef={importBrowseRef} intro={t.intro} />
+                    <ImportEmptyState onFiles={handleFiles} intro={t.intro} />
                 )}
 
                 {step === 'idle' && files.length > 0 && (
                     <div className="flex flex-col gap-4 py-2">
-                        <ImportEmptyState onFiles={handleFiles} browseRef={importBrowseRef} intro={t.intro} />
+                        <ImportEmptyState onFiles={handleFiles} intro={t.intro} />
                         <ul className="flex flex-col gap-2 w-full max-h-[30vh] overflow-y-auto">
                             {files.map((f) => (
                                 <FileRow
