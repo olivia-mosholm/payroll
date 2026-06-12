@@ -14,9 +14,13 @@ import {
 } from '@economic/taco';
 import { DropZone } from './DropZone';
 
-// Fake file used for usability testing — clicking browse or dropping any
-// file always resolves to this preset so testers never need real documents.
-const FAKE_UPLOAD = new File([''], 'Lønsedler_marts_2026.pdf', { type: 'application/pdf' });
+// Fake files used for usability testing — clicking browse or dropping any
+// file always resolves to these three presets so testers never need real documents.
+const FAKE_FILES = [
+    new File([''], 'Lønsedler_Sofie_Christensen.pdf', { type: 'application/pdf' }),
+    new File([''], 'Lønsedler_Jonas_Pedersen.pdf',    { type: 'application/pdf' }),
+    new File([''], 'Lønsedler_Line_Madsen.pdf',       { type: 'application/pdf' }),
+];
 
 // --- File type chips -------------------------------------------------------
 
@@ -38,7 +42,7 @@ function ImportEmptyState({
     const handleDrop: React.DragEventHandler = (e) => {
         e.preventDefault();
         // Usability test: always resolve to the fake preset file.
-        onFiles([FAKE_UPLOAD]);
+        onFiles(FAKE_FILES);
     };
     const [isOver, dropHandlers] = useDropTarget(handleDrop);
 
@@ -55,7 +59,7 @@ function ImportEmptyState({
                     <Icon name="import" size="lg" />
                 </span>
                 <Text size="sm" color="secondary">PDF · Excel · Word · JPG, PNG</Text>
-                <Button appearance="default" onClick={() => onFiles([FAKE_UPLOAD])}>
+                <Button appearance="default" onClick={() => onFiles(FAKE_FILES)}>
                     Vælg filer
                 </Button>
             </div>
@@ -213,21 +217,17 @@ function buildPreview(files: UploadedFile[], employees: Employee[]): Preview {
           ]
         : [];
 
-    // Always exactly one new draft from the additional pool.
-    const template =
-        additionalMockEmployees[importBatch % additionalMockEmployees.length];
+    // Always create three new drafts — one per fake file.
     const creates: Creation[] =
         files.length > 0
-            ? [
-                  {
-                      employee: {
-                          ...template,
-                          id: `${template.id}-batch${importBatch}`,
-                          employeeNumber: `${1000 + employees.length + 1}`,
-                      },
-                      sourceFile: sourceC,
+            ? additionalMockEmployees.map((template, i) => ({
+                  employee: {
+                      ...template,
+                      id: `${template.id}-batch${importBatch + i}`,
+                      employeeNumber: `${1000 + employees.length + i + 1}`,
                   },
-              ]
+                  sourceFile: [sourceA, sourceB, sourceC][i] ?? sourceC,
+              }))
             : [];
 
     return { enrichments, conflicts, creates };
@@ -596,7 +596,7 @@ export function ImportDialog({ open, onOpenChange, onProcessed }: Props) {
         if (newDrafts.length > 0) {
             appendEmployees(newDrafts.map((c) => c.employee));
         }
-        importBatch += newDrafts.length;
+        importBatch += 3;
         // Pass the first newly created employee so the parent can open
         // the review dialog immediately after the modal closes.
         const firstNew = newDrafts[0]?.employee ?? null;
@@ -869,6 +869,14 @@ function PreviewTable({
                 accessor="name"
                 header={da.table.name}
                 defaultWidth="grow"
+                renderer={({ row }) => (
+                    <span className="inline-flex items-center gap-2">
+                        {row.name}
+                        {row.type === 'update' && (
+                            <Badge color="blue" subtle>Opdateret</Badge>
+                        )}
+                    </span>
+                )}
             />
         </Table3>
         </div>

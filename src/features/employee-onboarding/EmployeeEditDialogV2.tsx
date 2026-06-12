@@ -65,6 +65,7 @@ function AiInput({
         <Input
             defaultValue={defaultValue ?? ''}
             disabled={disabled}
+            highlighted={aiExtracted}
             aria-label={aiExtracted ? 'Udtrukket af AI' : undefined}
             postfix={postfix}
         />
@@ -74,10 +75,12 @@ function AiInput({
 function SelectLike({
     defaultValue,
     disabled,
+    highlighted,
     placeholder,
 }: {
     defaultValue?: string;
     disabled?: boolean;
+    highlighted?: boolean;
     placeholder?: string;
 }) {
     return (
@@ -85,7 +88,7 @@ function SelectLike({
             defaultValue={defaultValue ?? ''}
             placeholder={placeholder}
             disabled={disabled}
-            readOnly
+            highlighted={highlighted}
             postfix={
                 <span className="inline-flex items-center text-neutral-500 pointer-events-none">
                     <Icon name="chevron-down" />
@@ -98,14 +101,17 @@ function SelectLike({
 function PercentInput({
     defaultValue,
     disabled,
+    highlighted,
 }: {
     defaultValue?: string;
     disabled?: boolean;
+    highlighted?: boolean;
 }) {
     return (
         <Input
             defaultValue={defaultValue ?? ''}
             disabled={disabled}
+            highlighted={highlighted}
             postfix={
                 <span className="text-xs text-neutral-500 pl-1">%</span>
             }
@@ -116,14 +122,17 @@ function PercentInput({
 function DateLike({
     defaultValue,
     disabled,
+    highlighted,
 }: {
     defaultValue?: string;
     disabled?: boolean;
+    highlighted?: boolean;
 }) {
     return (
         <Input
             defaultValue={defaultValue ?? ''}
             disabled={disabled}
+            highlighted={highlighted}
             postfix={
                 <span className="inline-flex items-center text-neutral-500 pointer-events-none">
                     <Icon name="calendar" />
@@ -139,17 +148,17 @@ function PersonalInfoTab({ employee }: { employee: Employee | null }) {
     const t = da.editDialog;
     const f = t.fields;
     const extracted = {
-        cpr: true,
-        fullName: true,
-        country: false,
+        cpr: !!employee?.cpr,
+        fullName: !!employee?.name,
+        country: !!employee?.name, // always has a country when employee exists
         employeeGroup: false,
-        employmentDate: true,
-        employeeNumber: true,
-        email: false,
-        phone: false,
-        postCode: false,
-        city: false,
-        address: false,
+        employmentDate: !!employee?.hireDate,
+        employeeNumber: !!employee?.employeeNumber,
+        email: !!employee?.email,
+        phone: !!employee?.phone,
+        postCode: !!employee?.postCode,
+        city: !!employee?.city,
+        address: !!employee?.address,
     };
     return (
         <div className="flex flex-col gap-4 pt-4">
@@ -209,7 +218,7 @@ function PersonalInfoTab({ employee }: { employee: Employee | null }) {
                 <div className="flex flex-col gap-4">
                     <Field>
                         <FieldLabel required>{f.country}</FieldLabel>
-                        <SelectLike defaultValue={t.defaults.country} />
+                        <SelectLike defaultValue={t.defaults.country} highlighted />
                     </Field>
                     <Field>
                         <FieldLabel>{f.email}</FieldLabel>
@@ -239,7 +248,7 @@ function PersonalInfoTab({ employee }: { employee: Employee | null }) {
                     <div className="grid grid-cols-[1fr_1fr] gap-2">
                         <Field>
                             <FieldLabel required>{f.employmentDate}</FieldLabel>
-                            <DateLike defaultValue={employee?.hireDate} />
+                            <DateLike defaultValue={employee?.hireDate} highlighted />
                         </Field>
                         <Field>
                             <FieldLabel required>{f.employeeNumber}</FieldLabel>
@@ -277,11 +286,11 @@ function EmploymentTab() {
                     <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                         <Field>
                             <FieldLabel required>Indkomsttype</FieldLabel>
-                            <SelectLike defaultValue="Normal (A-indkomsttype)" />
+                            <SelectLike defaultValue="Normal (A-indkomsttype)" highlighted />
                         </Field>
                         <Field>
                             <FieldLabel required>Løntermin</FieldLabel>
-                            <SelectLike defaultValue="Månedslønnede, forud" />
+                            <SelectLike defaultValue="Månedslønnede, forud" highlighted />
                         </Field>
                         <Field>
                             <FieldLabel required>Skattekort</FieldLabel>
@@ -293,7 +302,7 @@ function EmploymentTab() {
                         </Field>
                         <Field>
                             <FieldLabel required>ATP bidrag</FieldLabel>
-                            <SelectLike defaultValue="Mindst 117 timer pr. måned (A-bidrag)" />
+                            <SelectLike defaultValue="Mindst 117 timer pr. måned (A-bidrag)" highlighted />
                         </Field>
                         <div />
                         <Field>
@@ -322,7 +331,7 @@ function EmploymentTab() {
                     </h3>
                     <Field>
                         <FieldLabel>Udbetaling via</FieldLabel>
-                        <SelectLike defaultValue="Konto nr." />
+                        <SelectLike defaultValue="Konto nr." highlighted />
                     </Field>
                     <Field>
                         <FieldLabel required>Registreringsnr.</FieldLabel>
@@ -415,19 +424,19 @@ function VacationTab() {
                 <div className="flex flex-col gap-4">
                     <Field>
                         <FieldLabel required>Feriepenge</FieldLabel>
-                        <PercentInput defaultValue="12,50" />
+                        <PercentInput defaultValue="12,50" highlighted />
                     </Field>
                     <Field>
                         <FieldLabel required>Ferietillæg</FieldLabel>
-                        <PercentInput defaultValue="1,00" />
+                        <PercentInput defaultValue="1,00" highlighted />
                     </Field>
                     <Field>
                         <FieldLabel required>Optjening af feriedage</FieldLabel>
-                        <SelectLike defaultValue="Fast hver måned" />
+                        <SelectLike defaultValue="Fast hver måned" highlighted />
                     </Field>
                     <Field>
                         <FieldLabel required>Feriedage beregnes fra</FieldLabel>
-                        <DateLike defaultValue="01.06.26" />
+                        <DateLike defaultValue="01.06.26" highlighted />
                     </Field>
                     <label className="inline-flex items-center gap-2 text-sm">
                         <Switch />
@@ -702,7 +711,7 @@ export function EmployeeEditDialogV2({ employee, onClose }: Props) {
             size="lg"
         >
             <Dialog.Content aria-label={employee?.name ?? 'Edit employee'}>
-                <Dialog.Title>
+                <Dialog.Title className="!text-left">
                     <span className="inline-flex items-center gap-2">
                         <span>{employee?.name ?? ''}</span>
                         {employee && (
