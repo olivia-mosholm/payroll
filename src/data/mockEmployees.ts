@@ -14,6 +14,8 @@ export type Employee = {
     lastPayment?: string;
     remainingVacationDays?: number;
     plannedChanges?: boolean;
+    /** Date the employee record was created (Danish dd.mm.yyyy). */
+    createdDate?: string;
     /**
      * When true, the AI extracted additional address/contact fields from
      * the source document. The edit page highlights these too and pre-fills
@@ -36,6 +38,7 @@ export const mockEmployees: Employee[] = [
         department: 'Administration',
         salary: 42500,
         hireDate: '01.03.2022',
+        createdDate: '03.02.2022',
         payPeriod: 'Månedslønnede, forud',
         status: 'pending',
         enriched: true,
@@ -53,6 +56,7 @@ export const mockEmployees: Employee[] = [
         department: 'Salg',
         salary: 38000,
         hireDate: '15.08.2021',
+        createdDate: '28.07.2021',
         payPeriod: 'Månedslønnede, bagud',
         status: 'pending',
         plannedChanges: true,
@@ -65,6 +69,7 @@ export const mockEmployees: Employee[] = [
         department: 'Produktion',
         salary: 31200,
         hireDate: '12.06.2023',
+        createdDate: '30.05.2023',
         payPeriod: '14-dages lønnede, udbetaling ulige uger',
         status: 'pending',
     },
@@ -76,6 +81,7 @@ export const mockEmployees: Employee[] = [
         department: 'Administration',
         salary: 45000,
         hireDate: '05.11.2019',
+        createdDate: '21.10.2019',
         payPeriod: 'Månedslønnede, bagud',
         status: 'pending',
         plannedChanges: true,
@@ -88,6 +94,7 @@ export const mockEmployees: Employee[] = [
         department: 'Lager',
         salary: 29800,
         hireDate: '20.02.2020',
+        createdDate: '04.02.2020',
         payPeriod: '14-dages lønnede, udbetaling lige uger',
         status: 'pending',
     },

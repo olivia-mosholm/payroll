@@ -97,6 +97,11 @@ export function EmployeeDraftsTable({
                 renderer={() => null}
             />
             <Table3.Column<Employee>
+                accessor="createdDate"
+                header={da.table.createdDate}
+                defaultWidth={120}
+            />
+            <Table3.Column<Employee>
                 accessor="status"
                 header={da.table.status}
                 align="center"

@@ -327,6 +327,7 @@ export const da = {
         lastPayment: 'Sidste udbetaling',
         remainingVacation: 'Resterende feriedage',
         plannedChanges: 'Planlagte ændringer',
+        createdDate: 'Oprettet',
         status: 'Status',
     },
     status: {
